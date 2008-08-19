@@ -1,0 +1,1 @@
+gae2django is a Django helper application that provides an implementation of Google's App Engine API based on pure Django. The helper makes it easier to re-use applications originally designed for the App Engine environment in a pure Django environment.

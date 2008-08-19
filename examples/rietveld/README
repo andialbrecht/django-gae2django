@@ -1,0 +1,11 @@
+This examples shows how to run Rietveld - the code review tool available
+at http://codereview.appspot.com/.
+
+Before running this example application the first time, run
+
+    make all
+
+This will fetch a recent Django and Rietveld's sources directly from their
+Subversion repositories. When it's finished run
+
+    ./manage.py runserver
