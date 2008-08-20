@@ -18,6 +18,7 @@ import types
 
 from gae2django.gaeapi.appengine.api import urlfetch
 
+
 class URLFetchTest(unittest.TestCase):
     """Tests URL fetch API."""
 
@@ -28,3 +29,11 @@ class URLFetchTest(unittest.TestCase):
         assert response.content_was_truncated == False
         assert response.status_code == 200
         assert type(response.headers) == types.DictType
+
+    def test_response404(self):
+        response = urlfetch.fetch('http://www.google.com/404')
+        assert response.status_code == 404
+
+    def test_invalid_protocol(self):
+        self.assertRaises(urlfetch.InvalidURLError,
+                          urlfetch.fetch, 'ftp://example.com/README.txt')
