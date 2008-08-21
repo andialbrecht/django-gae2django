@@ -6,8 +6,6 @@ import random
 import re
 import time
 
-from google.appengine.ext import gql
-
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
@@ -44,7 +42,7 @@ class BaseModelMeta(models.base.ModelBase):
         return new_cls
 
 
-class BaseModel(models.Model):
+class Model(models.Model):
 
     __metaclass__ = BaseModelMeta
 
@@ -71,7 +69,7 @@ class BaseModel(models.Model):
         if 'key' in kwds:
             kwds['gae_key'] = kwds['key']
             del kwds['key']
-        super(BaseModel, self).__init__(*args, **kwds)
+        super(Model, self).__init__(*args, **kwds)
 
     @classmethod
     def get_or_insert(cls, key, **kwds):
@@ -115,7 +113,7 @@ class BaseModel(models.Model):
                                        % (randrange(0, MAX_SESSION_KEY),
                                           pid, time.time(),
                                           self.__name__)).hexdigest()
-        super(BaseModel, self).save()
+        super(Model, self).save()
 
     @classmethod
     def gql(cls, clause, *args):
@@ -237,6 +235,7 @@ from django import forms as djangoforms
 class GqlQuery(object):
 
     def __init__(self, sql, *args):
+        from gaeapi.appengine.ext import gql
         self._sql = sql
         self._gql = gql.GQL(sql)
         self._args = None
@@ -256,6 +255,7 @@ class GqlQuery(object):
             raise StopIteration
 
     def _execute(self):
+        from gaeapi.appengine.ext import gql
         if self._cursor:
             raise Exception, 'Already executed.'
         # Make sql local just for traceback
@@ -297,6 +297,12 @@ class GqlQuery(object):
         if self._results is None:
             self._execute()
         return self._results[offset:limit]
+
+    def count(self, limit):
+        idx = self._idx
+        c = len(list(self._results))
+        self._idx = idx
+        return c
 
 
 @transaction.commit_on_success

@@ -2,3 +2,5 @@ Database API
  - Cleanup API
  - GQL
  - Unittests
+ - Implement datastore.Query
+ - Finish classes in ext.db

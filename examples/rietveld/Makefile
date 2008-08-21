@@ -1,7 +1,8 @@
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
 
-all: codereview static templates django appengine_hook __init__.py manage.py settings.py dev.db
+all: codereview static templates django gae2django __init__.py manage.py dev.db
+	@echo "Run './manage.py runserver' to run Rietveld."
 
 clean: clean_local clean_external
 
@@ -14,20 +15,17 @@ clean_django:
 	rm -rf django
 
 clean_local:
-	unlink appengine_hook
-	rm -f __init__.py settings.py manage.py dev.db
+	unlink gae2django
+	rm -f __init__.py manage.py dev.db
 
-appengine_hook:
-	ln -s ../../appengine_hook .
+gae2django:
+	ln -s ../../gae2django .
 
 __init__.py:
 	touch __init__.py
 
 manage.py:
 	cp ../../manage.py .
-
-settings.py:
-	sed "s/'appengine_hook',/'appengine_hook',\n    'codereview',/g" ../../settings.py  > settings.py
 
 dev.db:
 	./manage.py syncdb

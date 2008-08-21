@@ -13,16 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Provides a pure Django implementation of Google's App Engine API."""
 
-import logging
-import os
-import sys
-
-
-def install():
-    """Imports the API and makes it available as 'google.appengine'."""
-    import gaeapi
-    sys.modules['google'] = gaeapi
-    sys.modules['gaeapi'] = gaeapi
-    os.environ['SERVER_SOFTWARE'] = 'gae2django drop-in environment'
+class DeadlineExceededError(Exception):
+    """Not used."""

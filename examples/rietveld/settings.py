@@ -2,6 +2,8 @@
 
 # NOTE: Keep the settings.py in examples directories in sync with this one!
 
+import os
+
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
@@ -64,15 +66,14 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'gae2django.middleware.FixRequestUserMiddleware',
+    'rietveld_helper.middleware.AddUserToRequestMiddleware',
     'django.middleware.doc.XViewMiddleware',
 )
 
-ROOT_URLCONF = 'django_gae2django.urls'
+ROOT_URLCONF = 'rietveld_helper.urls'
 
 TEMPLATE_DIRS = (
-    # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-    # Always use forward slashes, even on Windows.
-    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(os.path.dirname(__file__), 'templates'),
 )
 
 INSTALLED_APPS = (
@@ -81,4 +82,8 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'gae2django',
+    'rietveld_helper',
+    'codereview',
 )
+
+AUTH_PROFILE_MODULE = 'codereview.Account'

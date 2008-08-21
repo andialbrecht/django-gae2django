@@ -1,67 +1,26 @@
-#!/usr/bin/env python
-#
-# Copyright 2007 Google Inc.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
+# Customized version of Google's GQL class (google.appengine.ext.gql.GQL).
 
-"""GQL -- the SQL-like interface to the datastore.
-
-Defines the GQL-based query class, which is a query mechanism
-for the datastore which provides an alternative model for interacting with
-data stored.
-"""
-
-
-
-
-
-import calendar
 import datetime
 import heapq
 import logging
 import re
 import time
 
-from google.appengine.api import datastore
-from google.appengine.api import datastore_errors
-from google.appengine.api import datastore_types
-from google.appengine.api import users
-
+from gaeapi.appengine.api import datastore
+from gaeapi.appengine.api import users
+from gaeapi.appengine.ext import db
 
 LOG_LEVEL = logging.DEBUG - 1
 
-_EPOCH = datetime.datetime.utcfromtimestamp(0)
+# Hacks
+ASCENDING = 1
+DESCENDING = 2
 
-def Execute(query_string, *args, **keyword_args):
-  """Execute command to parse and run the query.
+class BadQueryError(Exception):
+    """BadQueryError"""
 
-  Calls the query parser code to build a proto-query which is an
-  unbound query. The proto-query is then bound into a real query and
-  executed.
-
-  Args:
-    query_string: properly formatted GQL query string.
-    args: rest of the positional arguments used to bind numeric references in
-          the query.
-    keyword_args: dictionary-based arguments (for named parameters).
-
-  Returns:
-    the result of running the query with *args.
-  """
-  app = keyword_args.pop('_app', None)
-  proto_query = GQL(query_string, _app=app)
-  return proto_query.Bind(args, keyword_args).Run()
+class BadArgumentError(Exception):
+    """BadArgumentError"""
 
 
 class GQL(object):
@@ -176,7 +135,7 @@ class GQL(object):
       query_string: properly formatted GQL query string.
 
     Raises:
-      datastore_errors.BadQueryError: if the query is not parsable.
+      BadQueryError: if the query is not parsable.
     """
     self._entity = ''
     self.__filters = {}
@@ -191,8 +150,7 @@ class GQL(object):
     self.__symbols = self.TOKENIZE_REGEX.findall(query_string)
     self.__next_symbol = 0
     if not self.__Select():
-      raise datastore_errors.BadQueryError(
-          'Unable to parse query')
+      raise BadQueryError('Unable to parse query')
     else:
       pass
 
@@ -209,7 +167,7 @@ class GQL(object):
       keyword_args: dictionary-based arguments (for named parameters).
 
     Raises:
-      datastore_errors.BadArgumentError: when arguments are left unbound
+      BadArgumentError: when arguments are left unbound
         (missing from the inputs arguments) or when arguments do not match the
         expected type.
 
@@ -244,8 +202,7 @@ class GQL(object):
     unused_args = input_args - used_args
     if unused_args:
       unused_values = [unused_arg + 1 for unused_arg in unused_args]
-      raise datastore_errors.BadArgumentError('Unused positional arguments %s' %
-                                              unused_values)
+      raise BadArgumentError('Unused positional arguments %s' % unused_values)
 
     if enumerated_queries:
       logging.debug('Multiple Queries Bound: %s' % enumerated_queries)
@@ -303,8 +260,7 @@ class GQL(object):
       BadQueryError and passes on an error message from the caller. Will raise
       BadQueryError on all calls.
     """
-    raise datastore_errors.BadQueryError(
-        'Type Cast Error: unable to cast %r with operation %s (%s)' %
+    raise BadQueryError('Type Cast Error: unable to cast %r with operation %s (%s)' %
         (values, operator.upper(), error_message))
 
   def __CastNop(self, values):
@@ -324,9 +280,9 @@ class GQL(object):
   def __CastKey(self, values):
     """Cast input values to Key() class using encoded string or tuple list."""
     if not len(values) % 2:
-      return datastore_types.Key.from_path(_app=self.__app, *values)
+      return db.Key.from_path(_app=self.__app, *values)
     elif len(values) == 1 and isinstance(values[0], str):
-      return datastore_types.Key(values[0])
+      return db.Key(values[0])
     else:
       self.__CastError('KEY', values,
                        'requires an even number of operands'
@@ -449,14 +405,14 @@ class GQL(object):
       if reference <= num_args:
         return args[reference - 1]
       else:
-        raise datastore_errors.BadArgumentError(
+        raise BadArgumentError(
             'Missing argument for bind, requires argument #%i, '
             'but only has %i args.' % (reference, num_args))
     elif isinstance(reference, str):
       if reference in keyword_args:
         return keyword_args[reference]
       else:
-        raise datastore_errors.BadArgumentError(
+        raise BadArgumentError(
             'Missing named arguments for bind, requires argument %s' %
             reference)
     else:
@@ -503,7 +459,7 @@ class GQL(object):
 
     if condition == '!=':
       if len(enumerated_queries) * 2 > self.MAX_ALLOWABLE_QUERIES:
-        raise datastore_errors.BadArgumentError(
+        raise BadArgumentError(
           'Cannot satisfy query -- too many IN/!= values.')
 
       num_iterations = CloneQueries(enumerated_queries, 2)
@@ -512,11 +468,11 @@ class GQL(object):
         enumerated_queries[2 * i + 1]['%s >' % identifier] = value
     elif condition.lower() == 'in':
       if not isinstance(value, list):
-        raise datastore_errors.BadArgumentError('List expected for "IN" filter')
+        raise BadArgumentError('List expected for "IN" filter')
 
       in_list_size = len(value)
       if len(enumerated_queries) * in_list_size > self.MAX_ALLOWABLE_QUERIES:
-        raise datastore_errors.BadArgumentError(
+        raise BadArgumentError(
           'Cannot satisfy query -- too many IN/!= values.')
 
       num_iterations = CloneQueries(enumerated_queries, in_list_size)
@@ -627,10 +583,10 @@ class GQL(object):
       BadQueryError on all calls to __Error()
     """
     if self.__next_symbol >= len(self.__symbols):
-      raise datastore_errors.BadQueryError(
+      raise BadQueryError(
           'Parse Error: %s at end of string' % error_message)
     else:
-      raise datastore_errors.BadQueryError(
+      raise BadQueryError(
           'Parse Error: %s at symbol %s' %
           (error_message, self.__symbols[self.__next_symbol]))
 
@@ -841,7 +797,7 @@ class GQL(object):
       assert condition.lower() == 'is'
 
     if condition.lower() != 'in' and operator == 'list':
-      sef.__Error('Only IN can process a list of values')
+      self.__Error('Only IN can process a list of values')
 
     self.__filters.setdefault(filter_rule, []).append((operator, parameters))
     return True
@@ -965,11 +921,11 @@ class GQL(object):
     identifier = self.__AcceptRegex(self.__identifier_regex)
     if identifier:
       if self.__Accept('DESC'):
-        self.__orderings.append((identifier, datastore.Query.DESCENDING))
+        self.__orderings.append((identifier, DESCENDING))
       elif self.__Accept('ASC'):
-        self.__orderings.append((identifier, datastore.Query.ASCENDING))
+        self.__orderings.append((identifier, ASCENDING))
       else:
-        self.__orderings.append((identifier, datastore.Query.ASCENDING))
+        self.__orderings.append((identifier, ASCENDING))
     else:
       self.__Error('Invalid ORDER BY Property')
 
@@ -1154,7 +1110,7 @@ class MultiQuery(datastore.Query):
         value2 = self.__GetValueForId(that, identifier, order)
 
         result = cmp(value1, value2)
-        if order == datastore.Query.DESCENDING:
+        if order == DESCENDING:
           result = -result
         if result:
           return result
@@ -1166,7 +1122,7 @@ class MultiQuery(datastore.Query):
       if self.__min_max_value_cache.has_key((entity_key, identifier)):
         value = self.__min_max_value_cache[(entity_key, identifier)]
       elif isinstance(value, list):
-        if sort_order == datastore.Query.DESCENDING:
+        if sort_order == DESCENDING:
           value = min(value)
         else:
           value = max(value)
