@@ -5,6 +5,7 @@ import os
 import random
 import re
 import time
+import types
 
 from django.contrib.auth.models import User
 from django.contrib.contenttypes import generic
@@ -51,6 +52,7 @@ class Model(models.Model):
     gae_parent_ctype = models.ForeignKey(ContentType,
                                          blank=True, null=True)
     gae_parent_id = models.PositiveIntegerField(blank=True, null=True)
+    gae_ancestry = models.CharField(max_length=500, blank=True, null=True)
     parent = generic.GenericForeignKey('gae_parent_ctype',
                                        'gae_parent_id')
 
@@ -65,10 +67,16 @@ class Model(models.Model):
             ctype = ContentType.objects.get_for_model(parent.__class__)
             kwds['gae_parent_ctype'] = ctype
             kwds['gae_parent_id'] = parent.id
+            kwds['gae_ancestry'] = ''.join(['@%s@' % prnt.key()
+                                            for prnt in parent.get_ancestry()])
+            
             del kwds['parent']
         if 'key' in kwds:
             kwds['gae_key'] = kwds['key']
             del kwds['key']
+        if 'key_name' in kwds:
+            kwds['gae_key'] = kwds['key_name']
+            del kwds['key_name']
         super(Model, self).__init__(*args, **kwds)
 
     @classmethod
@@ -116,14 +124,25 @@ class Model(models.Model):
         super(Model, self).save()
 
     @classmethod
-    def gql(cls, clause, *args):
+    def gql(cls, clause, *args, **kwds):
         from google.appengine.ext import db
         return db.GqlQuery('SELECT * FROM %s %s' % (cls.__name__,
-                                                    clause), *args)
+                                                    clause), *args, **kwds)
 
     @classmethod
     def get(cls, keys):
         return [cls.get_by_key_name(key) for key in keys]
+
+    def parent_key(self):
+        return self.parent.key()
+
+    def get_ancestry(self):
+        """Returns parent objects."""
+        yield self
+        parent = self.parent
+        while parent:
+            yield parent
+            parent = parent.parent
 
 
 def _adjust_keywords(kwds):
@@ -184,6 +203,8 @@ class ListProperty(models.TextField):
     def get_db_prep_value(self, value):
         return base64.encodestring(cPickle.dumps(value))
     def to_python(self, value):
+        if type(value) in [types.ListType, types.TupleType]:
+            return value
         try:
             return cPickle.loads(base64.decodestring(value))
         except EOFError:
@@ -191,6 +212,9 @@ class ListProperty(models.TextField):
 
 
 Email = str
+Blob = str
+Link = str
+Text = unicode
 
 
 class ReferenceProperty(models.ForeignKey):
@@ -232,15 +256,30 @@ class IntegerProperty(models.IntegerField):
 
 from django import forms as djangoforms
 
+class _QueryIterator(object):
+    def __init__(self, results):
+        self._results = results
+        self._idx = -1
+    def __iter__(self):
+        return self
+    def next(self):
+        self._idx += 1
+        if self._results.count() > self._idx:
+            return self._results[self._idx]
+        else:
+            raise StopIteration
+
 class GqlQuery(object):
 
-    def __init__(self, sql, *args):
+    def __init__(self, sql, *args, **kwds):
         from gaeapi.appengine.ext import gql
+        print sql, args, kwds
         self._sql = sql
         self._gql = gql.GQL(sql)
-        self._args = None
-        if args:
-            self.bind(args)
+        self._args = []
+        self._kwds = {}
+        if args or kwds:
+            self.bind(*args, **kwds)
         self._cursor = None
         self._idx = -1
         self._results = None
@@ -248,11 +287,7 @@ class GqlQuery(object):
     def __iter__(self):
         if self._results is None:
             self._execute()
-        self._idx += 1
-        if self._results.count() > self._idx:
-            yield self._results[self._idx]
-        else:
-            raise StopIteration
+        return _QueryIterator(self._results)
 
     def _execute(self):
         from gaeapi.appengine.ext import gql
@@ -270,7 +305,11 @@ class GqlQuery(object):
         if not cls:
             raise Exception, 'Class not found.'
         q = cls.objects
+        print '-'*10
+        print "xx", sql, self._args, self._kwds
+        ancestor = None
         for key, value in self._gql.filters().items():
+            print key, value
             kwd, op = key
             if op == '=':
                 if cls._meta.get_field(kwd).rel:
@@ -278,19 +317,48 @@ class GqlQuery(object):
                 else:
                     rel_cls = None
                 for xop, val in value:
-                    for item in val:
-                        if isinstance(item, gql.Literal):
-                            item = item.Get()
-                        if rel_cls:
-                            # FIXME: Handle lists
-                            try:
-                                item = rel_cls.objects.get(id=val[0])
-                            except rel_cls.DoesNotExist:
-                                continue
-                        q = q.filter(**{kwd:item})
+                    # FIXME: Handle lists...
+                    item = val[0]
+                    
+                    if isinstance(item, gql.Literal):
+                        print 'Literal', item
+                        item = item.Get()
+                        print '-->', item
+                    elif isinstance(item, basestring):
+                        print 'Keyword', item
+                        item = self._kwds[item]
+                        print '-->', item
+                    elif isinstance(item, int):
+                        print 'Positional', item
+                        item = self._args[item-1]
+                        print '-->', item
+                    else:
+                        raise Error('Unhandled args %s' % item)
+#                    if rel_cls:
+#                        # FIXME: Handle lists
+#                        try:
+#                            item = rel_cls.objects.get(id=item)
+#                        except rel_cls.DoesNotExist:
+#                            continue
+                    q = q.filter(**{kwd:item})
+            elif op == 'is' and kwd == -1: # ANCESTOR
+                if ancestor:
+                    raise Error('Ancestor already defined: %s' % ancestor)
+                item = value[0][1][0]
+                if isinstance(item, basestring):
+                    ancestor = self._kwds[item]
+                elif isinstance(item, int):
+                    ancestor = self._args[item-1]
+                else:
+                    raise Error('Unhandled args %s' % item)
+                pattern = '@%s@' % ancestor.key()
+                q = q.filter(**{'gae_ancestry__contains':pattern})
+            else:
+                raise Error('Unhandled operator %s' % op)
         self._results = q
 
     def bind(self, *args, **kwds):
+        self._kwds = kwds
         self._args = args
 
     def fetch(self, limit, offset):
@@ -299,6 +367,8 @@ class GqlQuery(object):
         return self._results[offset:limit]
 
     def count(self, limit):
+        if self._results is None:
+            self._execute()
         idx = self._idx
         c = len(list(self._results))
         self._idx = idx
@@ -315,9 +385,30 @@ class Key(object):
     def __init__(self, obj):
         self.obj = obj
 
+    def __str__(self):
+        return '%s_%s' % (self.obj.__class__.__name__,
+                          self.obj.id)
+
     @classmethod
     def from_path(cls, kind, id_):
         return '%s_%s' % (kind, id)
 
     def id(self):
         return self.obj.id
+
+    def parent(self):
+        return self.obj.parent.key()
+
+
+class Error(Exception):
+    """db.Error"""
+
+
+def put(models):
+    keys = []
+    for model in models:
+        model.save()
+        keys.append(model.key)
+    if len(keys) > 1:
+        return keys
+    return keys[0]
