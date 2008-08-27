@@ -4,3 +4,7 @@ Database API
  - Unittests
  - Implement datastore.Query
  - Finish classes in ext.db
+
+Mail API
+ - Unittests
+ - EmailMessage class
