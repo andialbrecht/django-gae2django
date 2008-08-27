@@ -289,6 +289,17 @@ class GqlQuery(object):
             self._execute()
         return _QueryIterator(self._results)
 
+    def _resolve_arg(self, value):
+        from gaeapi.appengine.ext import gql
+        if isinstance(value, basestring):
+            return self._kwds[value]
+        elif isinstance(value, int):
+            return self._args[value-1]
+        elif isinstance(value, gql.Literal):
+            return value.Get()
+        else:
+           raise Error('Unhandled args %s' % item)
+
     def _execute(self):
         from gaeapi.appengine.ext import gql
         if self._cursor:
@@ -353,6 +364,12 @@ class GqlQuery(object):
                     raise Error('Unhandled args %s' % item)
                 pattern = '@%s@' % ancestor.key()
                 q = q.filter(**{'gae_ancestry__contains':pattern})
+            elif op == '>':
+                item = self._resolve_arg(value[0][1][0])
+                q = q.filter(**{'%s__gt' % kwd: item})
+            elif op == '<':
+                item = self._resolve_arg(value[0][1][0])
+                q = q.filter(**{'%s__lt' % kwd: item})
             else:
                 raise Error('Unhandled operator %s' % op)
         self._results = q

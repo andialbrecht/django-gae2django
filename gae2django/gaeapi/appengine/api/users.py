@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 
 
 def get_current_user():
-    from gae_django import middleware
+    from gae2django import middleware
     return middleware.get_current_user()
 
 def is_current_user_admin():
