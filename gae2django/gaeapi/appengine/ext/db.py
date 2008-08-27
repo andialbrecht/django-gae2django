@@ -22,9 +22,12 @@ if hasattr(random, 'SystemRandom'):
 else:
     randrange = random.randrange
 MAX_SESSION_KEY = 18446744073709551616L     # 2 << 63
-
+      
 
 class BaseManager(manager.Manager):
+
+    def __iter__(self):
+        return self.iterator()
 
     def count(self, limit=None):
         return super(BaseManager, self).count()
@@ -422,6 +425,8 @@ class Error(Exception):
 
 
 def put(models):
+    if type(models) not in [types.ListType, types.TupleType]:
+        models = [models]
     keys = []
     for model in models:
         model.save()

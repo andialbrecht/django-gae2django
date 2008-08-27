@@ -1,0 +1,92 @@
+Index: codereview/views.py
+===================================================================
+--- codereview/views.py	(Revision 293)
++++ codereview/views.py	(Arbeitskopie)
+@@ -566,7 +566,7 @@
+   review_issues = [issue for issue in db.GqlQuery(
+       'SELECT * FROM Issue '
+       'WHERE closed = FALSE AND reviewers = :1 ORDER BY modified DESC',
+-      user.email()) if issue.owner != user]
++      user.email) if issue.owner != user]
+   closed_issues = list(db.GqlQuery(
+       'SELECT * FROM Issue '
+       'WHERE closed = TRUE AND modified > :1 AND owner = :2 '
+@@ -574,7 +574,7 @@
+       datetime.datetime.now() - datetime.timedelta(days=7), user))
+   _optimize_draft_counts(my_issues + review_issues + closed_issues)
+   return respond(request, 'user.html',
+-                 {'email':user.email(),
++                 {'email':user.email,
+                   'my_issues': my_issues,
+                   'review_issues': review_issues,
+                   'closed_issues': closed_issues})
+@@ -1520,11 +1520,11 @@
+   if request.method != 'POST':
+     reviewers = issue.reviewers[:]
+     cc = issue.cc[:]
+-    if request.user != issue.owner and (request.user.email()
++    if request.user != issue.owner and (request.user.email
+                                         not in issue.reviewers):
+-      reviewers.append(request.user.email())
+-      if request.user.email() in cc:
+-        cc.remove(request.user.email())
++      reviewers.append(request.user.email)
++      if request.user.email in cc:
++        cc.remove(request.user.email)
+     tbd, comments = _get_draft_comments(request, issue, True)
+     preview = _get_draft_details(request, comments)
+     form = form_class(initial={'subject': issue.subject,
+@@ -1544,15 +1544,15 @@
+     reviewers = _get_emails(form, 'reviewers')
+   else:
+     reviewers = issue.reviewers
+-    if request.user != issue.owner and request.user.email() not in reviewers:
+-      reviewers.append(db.Email(request.user.email()))
++    if request.user != issue.owner and request.user.email not in reviewers:
++      reviewers.append(db.Email(request.user.email))
+   if form.is_valid() and not form.cleaned_data.get('message_only', False):
+     cc = _get_emails(form, 'cc')
+   else:
+     cc = issue.cc
+     # The user is in the reviewer list, remove them from CC if they're there.
+-    if request.user.email() in cc:
+-      cc.remove(request.user.email())
++    if request.user.email in cc:
++      cc.remove(request.user.email)
+   if not form.is_valid():
+     return respond(request, 'publish.html', {'form': form, 'issue': issue})
+   issue.reviewers = reviewers
+@@ -1682,8 +1682,8 @@
+   """Helper to create a Message instance and optionally send an email."""
+   template, context = _get_mail_template(issue)
+   # Decide who should receive mail
+-  my_email = db.Email(request.user.email())
+-  to = [db.Email(issue.owner.email())] + issue.reviewers
++  my_email = db.Email(request.user.email)
++  to = [db.Email(issue.owner.email)] + issue.reviewers
+   cc = issue.cc[:]
+   reply_to = to + cc
+   if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
+@@ -1952,7 +1952,7 @@
+ 
+ def _user_popup(request):
+   user = request.user_to_show
+-  popup_html = memcache.get('user_popup:' + user.email())
++  popup_html = memcache.get('user_popup:' + user.email)
+   if popup_html is None:
+     num_issues_created = db.GqlQuery(
+       'SELECT * FROM Issue '
+@@ -1963,11 +1963,11 @@
+       'WHERE closed = FALSE AND reviewers = :1',
+       user).count()
+ 
+-    user.nickname = models.Account.get_nickname_for_email(user.email())
++    user.nickname = models.Account.get_nickname_for_email(user.email)
+     popup_html = render_to_response('user_popup.html',
+                             {'user': user,
+                              'num_issues_created': num_issues_created,
+                              'num_issues_reviewed': num_issues_reviewed})
+     # Use time expired cache because the number of issues will change over time
+-    memcache.add('user_popup:' + user.email(), popup_html, 60)
++    memcache.add('user_popup:' + user.email, popup_html, 60)
+   return popup_html
