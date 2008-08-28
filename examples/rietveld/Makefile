@@ -34,6 +34,7 @@ codereview:
 	svn co http://rietveld.googlecode.com/svn/trunk/codereview
 	patch -p0 < patches/library.diff
 	patch -p0 < patches/views.diff
+	patch -p0 < patches/upload.diff
 
 static:
 	svn co http://rietveld.googlecode.com/svn/trunk/static
