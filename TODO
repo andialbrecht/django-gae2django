@@ -4,6 +4,7 @@ Database API
  - Unittests
  - Implement datastore.Query
  - Finish classes in ext.db
+ - Remove prints from GqlQuery
 
 Mail API
  - Unittests
