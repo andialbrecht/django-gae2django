@@ -39,12 +39,12 @@ class Client(object):
         mapping = {}
         [mapping.setdefault(key, self.get('%s%s' % (key_prefix, key)))
          for key in keys
-         if cache.has_key(key)]
+         if key in cache]
         return mapping
 
     def delete(self, key, seconds=0):
         # TODO: Implement locking (seconds keyword).
-        if not cache.has_key(key):
+        if key not in cache:
             return 1
         cache.delete(key)
         return 2
@@ -60,13 +60,13 @@ class Client(object):
         return cache.add(key, value, time or None)
 
     def replace(self, key, value, time=0, min_compress_len=0):
-        if cache.has_key(key):
+        if key in cache:
             self.set(key, value, time, min_compress_len)
             return True
         return False
 
     def incr(self, key, delta=1):
-        if cache.has_key(key):
+        if key in cache:
             try:
                 old = long(cache.get(key))
                 new = old+delta
@@ -107,10 +107,11 @@ class Client(object):
 
 _CLIENT = None
 
+
 def setup_cache(client_obj):
     global _CLIENT
     var_dict = globals()
-  
+
     _CLIENT = client_obj
     var_dict['set_servers'] = _CLIENT.set_servers
     var_dict['disconnect_all'] = _CLIENT.disconnect_all

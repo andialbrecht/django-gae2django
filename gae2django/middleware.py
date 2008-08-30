@@ -24,20 +24,25 @@ _thread_locals = threading.local()
 
 # get_current_user hack found here:
 #   http://lukeplant.me.uk/blog.php?id=1107301634
+
+
 def get_current_user():
     user = getattr(_thread_locals, 'user', None)
     if user and user.is_anonymous():
         return None
     return user
 
+
 class ThreadLocals(object):
     """Middleware that gets various objects from the
     request object and saves them in thread local storage."""
+
     def process_request(self, request):
         _thread_locals.user = getattr(request, 'user', None)
 
 
 class FixRequestUserMiddleware(object):
+
     def process_request(self, request):
         if getattr(request, 'user', None) is None:
             return

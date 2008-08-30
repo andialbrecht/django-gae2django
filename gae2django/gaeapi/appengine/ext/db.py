@@ -22,7 +22,7 @@ if hasattr(random, 'SystemRandom'):
 else:
     randrange = random.randrange
 MAX_SESSION_KEY = 18446744073709551616L     # 2 << 63
-      
+
 
 class BaseManager(manager.Manager):
 
@@ -72,7 +72,7 @@ class Model(models.Model):
             kwds['gae_parent_id'] = parent.id
             kwds['gae_ancestry'] = ''.join(['@%s@' % prnt.key()
                                             for prnt in parent.get_ancestry()])
-            
+
             del kwds['parent']
         if 'key' in kwds:
             kwds['gae_key'] = kwds['key']
@@ -205,6 +205,7 @@ class ListProperty(models.TextField):
 
     def get_db_prep_value(self, value):
         return base64.encodestring(cPickle.dumps(value))
+
     def to_python(self, value):
         if type(value) in [types.ListType, types.TupleType]:
             return value
@@ -259,18 +260,23 @@ class IntegerProperty(models.IntegerField):
 
 from django import forms as djangoforms
 
+
 class _QueryIterator(object):
+
     def __init__(self, results):
         self._results = results
         self._idx = -1
+
     def __iter__(self):
         return self
+
     def next(self):
         self._idx += 1
         if self._results.count() > self._idx:
             return self._results[self._idx]
         else:
             raise StopIteration
+
 
 class GqlQuery(object):
 
@@ -301,12 +307,12 @@ class GqlQuery(object):
         elif isinstance(value, gql.Literal):
             return value.Get()
         else:
-           raise Error('Unhandled args %s' % item)
+            raise Error('Unhandled args %s' % item)
 
     def _execute(self):
         from gaeapi.appengine.ext import gql
         if self._cursor:
-            raise Exception, 'Already executed.'
+            raise Error('Already executed.')
         # Make sql local just for traceback
         sql = self._sql
         from django.db import models
@@ -317,7 +323,7 @@ class GqlQuery(object):
                 cls = xcls
                 break
         if not cls:
-            raise Exception, 'Class not found.'
+            raise Error('Class not found.')
         q = cls.objects
         print '-'*10
         print "xx", sql, self._args, self._kwds
@@ -333,7 +339,7 @@ class GqlQuery(object):
                 for xop, val in value:
                     # FIXME: Handle lists...
                     item = val[0]
-                    
+
                     if isinstance(item, gql.Literal):
                         print 'Literal', item
                         item = item.Get()
@@ -354,7 +360,7 @@ class GqlQuery(object):
 #                            item = rel_cls.objects.get(id=item)
 #                        except rel_cls.DoesNotExist:
 #                            continue
-                    q = q.filter(**{kwd:item})
+                    q = q.filter(**{kwd: item})
             elif op == 'is' and kwd == -1: # ANCESTOR
                 if ancestor:
                     raise Error('Ancestor already defined: %s' % ancestor)
@@ -366,7 +372,7 @@ class GqlQuery(object):
                 else:
                     raise Error('Unhandled args %s' % item)
                 pattern = '@%s@' % ancestor.key()
-                q = q.filter(**{'gae_ancestry__contains':pattern})
+                q = q.filter(**{'gae_ancestry__contains': pattern})
             elif op == '>':
                 item = self._resolve_arg(value[0][1][0])
                 q = q.filter(**{'%s__gt' % kwd: item})
