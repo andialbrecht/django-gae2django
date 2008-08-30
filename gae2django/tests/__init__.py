@@ -35,22 +35,22 @@ TEST_RE = r"^test_.*.py$"
 
 # Search through every file inside this package.
 test_names = []
-test_dir = os.path.dirname( __file__)
+test_dir = os.path.dirname(__file__)
 for filename in os.listdir(test_dir):
-  if not re.match(TEST_RE, filename):
-    continue
-  # Import the test file and find all TestClass clases inside it.
-  test_module = __import__('gae2django.tests.%s' %
-                           filename[:-3], {}, {},
-                           filename[:-3])
-  for name in dir(test_module):
-    item = getattr(test_module, name)
-    if not (isinstance(item, (type, types.ClassType)) and
-            issubclass(item, unittest.TestCase)):
-      continue
-    # Found a test, bring into the module namespace.
-    exec "%s = item" % name
-    test_names.append(name)
+    if not re.match(TEST_RE, filename):
+        continue
+    # Import the test file and find all TestClass clases inside it.
+    test_module = __import__('gae2django.tests.%s' %
+                             filename[:-3], {}, {},
+                             filename[:-3])
+    for name in dir(test_module):
+        item = getattr(test_module, name)
+        if not (isinstance(item, (type, types.ClassType)) and
+                issubclass(item, unittest.TestCase)):
+            continue
+        # Found a test, bring into the module namespace.
+        exec "%s = item" % name
+        test_names.append(name)
 
 # Hide everything other than the test cases from other modules.
 __all__ = test_names

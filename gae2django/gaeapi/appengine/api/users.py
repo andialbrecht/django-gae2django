@@ -17,3 +17,15 @@ def create_login_url(redirect):
 
 def create_logout_url(redirect):
     return settings.LOGOUT_URL+'?next='+redirect
+
+
+class Error(Exception):
+    """Base class for all exceptions in this package."""
+
+
+class UserNotFoundError(Error):
+    """Raised if a User doesn't exist."""
+
+
+class RedirectTooLongError(Error):
+    """Raised if the redirect URL is too long."""
