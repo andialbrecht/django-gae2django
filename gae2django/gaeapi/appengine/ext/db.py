@@ -400,6 +400,13 @@ class GqlQuery(object):
         self._idx = idx
         return c
 
+    def get(self):
+        if self._results is None:
+            self._execute()
+        if self._results:
+            return self._results[0]
+        return None
+
 
 @transaction.commit_on_success
 def run_in_transaction(func, *args, **kwds):
