@@ -1,9 +1,10 @@
-- Get rid of CallableString, it causes too much troubles:
-  - How to set it for UserProperty fields, they return a
-    Django User model?
-  - Some database backends don't like it, e.g. PostgreSQL raises
-    can't adapt.
-  - somehow it's really ugly...
+User API
+  - Get rid of CallableString, it causes too much troubles:
+    - How to set it for UserProperty fields, they return a
+      Django User model?
+    - Some database backends don't like it, e.g. PostgreSQL raises
+      can't adapt.
+    - somehow it's really ugly...
 
 Database API
  - Cleanup API
@@ -15,4 +16,4 @@ Database API
 
 Mail API
  - Unittests
- - EmailMessage class
+ - Add email address validation
