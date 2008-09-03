@@ -93,9 +93,12 @@ class Model(models.Model):
             return new
 
     @classmethod
-    def get_by_key_name(cls, key):
+    def get_by_key_name(cls, key, parent=None):
         try:
-            return cls.objects.get(gae_key=key)
+            kwds = {'gae_key': key}
+            if parent is not None:
+                kwds['gae_ancestry__icontains'] = str(parent.key())
+            return cls.objects.get(**kwds)
         except cls.DoesNotExist:
             return None
 
@@ -392,7 +395,7 @@ class GqlQuery(object):
             self._execute()
         return self._results[offset:limit]
 
-    def count(self, limit):
+    def count(self, limit=None):
         if self._results is None:
             self._execute()
         idx = self._idx
