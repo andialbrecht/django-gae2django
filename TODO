@@ -17,3 +17,4 @@ Database API
 Mail API
  - Unittests
  - Add email address validation
+ - Attachments
