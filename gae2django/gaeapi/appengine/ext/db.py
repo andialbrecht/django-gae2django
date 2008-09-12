@@ -449,4 +449,6 @@ def put(models):
         keys.append(model.key)
     if len(keys) > 1:
         return keys
-    return keys[0]
+    elif len(keys) == 1:
+        return keys[0]
+    return None
