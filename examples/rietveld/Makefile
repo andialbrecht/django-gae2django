@@ -1,7 +1,7 @@
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
 
-all: codereview static templates django gae2django __init__.py manage.py dev.db
+all: static templates codereview django gae2django __init__.py manage.py dev.db
 	@echo "Run './manage.py runserver' to run Rietveld."
 
 clean: clean_local clean_external
@@ -34,10 +34,10 @@ codereview:
 	svn co http://rietveld.googlecode.com/svn/trunk/codereview
 	patch -p0 < patches/library.diff
 	patch -p0 < patches/views.diff
-	patch -p0 < patches/upload.diff
 
 static:
 	svn co http://rietveld.googlecode.com/svn/trunk/static
+	patch -p0 < patches/upload.diff
 
 templates:
 	svn co http://rietveld.googlecode.com/svn/trunk/templates
