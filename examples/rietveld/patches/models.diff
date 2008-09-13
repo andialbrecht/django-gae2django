@@ -1,0 +1,14 @@
+Index: codereview/models.py
+===================================================================
+--- codereview/models.py	(Revision 310)
++++ codereview/models.py	(Arbeitskopie)
+@@ -463,7 +463,8 @@
+     if '@' in nickname:
+       nickname = nickname.split('@', 1)[0]
+     assert nickname
+-    return cls.get_or_insert(key, user=user, email=email, nickname=nickname,
++    return cls.get_or_insert(key, user=user,
++                             email=str(email), nickname=str(nickname),
+                              fresh=True)
+ 
+   @classmethod
