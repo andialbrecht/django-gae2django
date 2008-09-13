@@ -1,6 +1,6 @@
 Index: static/upload.py
 ===================================================================
---- static/upload.py	(Revision 293)
+--- static/upload.py	(Revision 310)
 +++ static/upload.py	(Arbeitskopie)
 @@ -198,7 +198,7 @@
                                response.headers, response.fp)
@@ -33,7 +33,7 @@ Index: static/upload.py
  ##           elif e.code >= 500 and e.code < 600:
  ##             # Server Error - try again.
  ##             continue
-@@ -306,9 +308,43 @@
+@@ -306,9 +308,42 @@
  class HttpRpcServer(AbstractRpcServer):
    """Provides a simplified RPC-style interface for HTTP requests."""
  
@@ -65,7 +65,6 @@ Index: static/upload.py
 +      if e.code == 302:
 +        self.cookie_jar.extract_cookies(e, req)
 +        self.cookie_jar.save()
-+        print self.cookie_jar._cookies
 +        self.authenticated = True
 +        return
 +      elif e.code == 403:
