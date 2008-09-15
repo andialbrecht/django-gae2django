@@ -285,7 +285,7 @@ class GqlQuery(object):
 
     def __init__(self, sql, *args, **kwds):
         from gaeapi.appengine.ext import gql
-        print sql, args, kwds
+        #print sql, args, kwds
         self._sql = sql
         self._gql = gql.GQL(sql)
         self._args = []
@@ -328,11 +328,11 @@ class GqlQuery(object):
         if not cls:
             raise Error('Class not found.')
         q = cls.objects
-        print '-'*10
-        print "xx", sql, self._args, self._kwds
+        #print '-'*10
+        #print "xx", sql, self._args, self._kwds
         ancestor = None
         for key, value in self._gql.filters().items():
-            print key, value
+            #print key, value
             kwd, op = key
             if op == '=':
                 if cls._meta.get_field(kwd).rel:
