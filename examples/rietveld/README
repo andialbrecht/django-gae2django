@@ -1,11 +1,49 @@
 This examples shows how to run Rietveld - the code review tool available
 at http://codereview.appspot.com/.
 
-Before running this example application the first time, run
+Before you are able to run this example you need to obtain a recent version
+of Rietveld. There are two ways to do this. Either set it up manually or
+use the Makefile in this directory.
 
-    make all
+
+Using the Makefile
+==================
+
+Just run
+
+     make all
 
 This will fetch a recent Django and Rietveld's sources directly from their
 Subversion repositories. When it's finished run
 
-    ./manage.py runserver
+    ./manage.py runserver 127.0.0.1:8000
+
+and point your browser to that location.
+
+
+Manual Setup
+============
+
+Skip down to "Using the Makefile" if you don't want to setup this
+example manually.
+
+First check out Rietveld from Subversion by running
+
+     svn co http://rietveld.googlecode.com/svn/trunk/codereview
+     svn co http://rietveld.googlecode.com/svn/trunk/static
+     svn co http://rietveld.googlecode.com/svn/trunk/templates
+
+Then modify your checked out version of Rietveld by applying all patches
+in the patches directory.
+
+Now set a few symbolic links to include the helper and Django by running
+
+    ln -s ../../django .
+    ln -s ../../gae2django .
+    ln -s ../../manage.py .
+
+Finally run
+
+    ./manage.py syncdb
+
+to initialize the example database.

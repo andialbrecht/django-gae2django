@@ -1,7 +1,7 @@
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
 
-all: static templates codereview django gae2django __init__.py manage.py dev.db
+all: static templates codereview django gae2django manage.py dev.db
 	@echo "Run './manage.py runserver' to run Rietveld."
 
 clean: clean_local clean_external
@@ -16,13 +16,10 @@ clean_django:
 
 clean_local:
 	unlink gae2django
-	rm -f __init__.py manage.py dev.db
+	rm -f manage.py dev.db
 
 gae2django:
 	ln -s ../../gae2django .
-
-__init__.py:
-	touch __init__.py
 
 manage.py:
 	cp ../../manage.py .
