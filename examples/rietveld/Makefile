@@ -12,7 +12,7 @@ clean_rietveld:
 	rm -rf codereview static templates
 
 clean_django:
-	rm -rf django
+	unlink django
 
 clean_local:
 	unlink gae2django
@@ -40,4 +40,4 @@ templates:
 	svn co http://rietveld.googlecode.com/svn/trunk/templates
 
 django:
-	svn co http://code.djangoproject.com/svn/django/trunk/django
+	ln -s ../../django .
