@@ -2,7 +2,7 @@ default:
 	@echo "Run 'make all' to fetch required sources to run this example."
 
 all: static templates codereview django gae2django manage.py dev.db
-	@echo "Run './manage.py runserver' to run Rietveld."
+	@echo "Run './manage.py runserver 127.0.0.1:8000' to run Rietveld."
 
 clean: clean_local clean_external
 
