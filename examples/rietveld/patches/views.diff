@@ -1,16 +1,8 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(Revision 310)
+--- codereview/views.py	(Revision 311)
 +++ codereview/views.py	(Arbeitskopie)
-@@ -53,6 +53,7 @@
- 
- # Django imports
- # TODO(guido): Don't import classes/functions directly.
-+from django import conf
- from django import forms
- from django.http import HttpResponse, HttpResponseRedirect
- from django.http import HttpResponseForbidden, HttpResponseNotFound
-@@ -575,7 +576,7 @@
+@@ -572,7 +572,7 @@
    review_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = FALSE AND reviewers = :1 ORDER BY modified DESC',
@@ -19,7 +11,7 @@ Index: codereview/views.py
    closed_issues = list(db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = TRUE AND modified > :1 AND owner = :2 '
-@@ -583,7 +584,7 @@
+@@ -580,7 +580,7 @@
        datetime.datetime.now() - datetime.timedelta(days=7), user))
    _optimize_draft_counts(my_issues + review_issues + closed_issues)
    return respond(request, 'user.html',
@@ -28,18 +20,25 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues})
-@@ -619,7 +620,9 @@
+@@ -606,7 +606,7 @@
+     return HttpResponseRedirect('/%s' % issue.key().id())
+ 
+ 
+-@post_required
++#@post_required
+ def upload(request):
+   """/upload - Like new() or add(), but from the upload.py script.
+ 
+@@ -616,7 +616,7 @@
      if IS_DEV:
        request.user = users.User(request.POST.get('user', 'test@example.com'))
      else:
 -      return HttpResponse('Login required', status=401)
-+      login_url = request.build_absolute_uri(conf.settings.LOGIN_URL)
-+      return HttpResponse('Login required: %s' % login_url,
-+                          status=401)
++      return HttpResponse('Login required: %s', status=401)
    # Check against old upload.py usage.
    if request.POST.get('num_parts') > 1:
      return HttpResponse('Upload.py is too old, get the latest version.',
-@@ -1537,11 +1540,11 @@
+@@ -1534,11 +1534,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -55,7 +54,7 @@ Index: codereview/views.py
      tbd, comments = _get_draft_comments(request, issue, True)
      preview = _get_draft_details(request, comments)
      form = form_class(initial={'subject': issue.subject,
-@@ -1561,15 +1564,15 @@
+@@ -1558,15 +1558,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -75,7 +74,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -1699,8 +1702,8 @@
+@@ -1696,8 +1696,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(issue)
    # Decide who should receive mail
@@ -86,7 +85,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -1972,7 +1975,7 @@
+@@ -1969,7 +1969,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -95,7 +94,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -1983,11 +1986,11 @@
+@@ -1980,11 +1980,11 @@
        'WHERE closed = FALSE AND reviewers = :1',
        user).count()
  
