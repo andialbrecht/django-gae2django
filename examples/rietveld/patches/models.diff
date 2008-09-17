@@ -1,8 +1,8 @@
 Index: codereview/models.py
 ===================================================================
---- codereview/models.py	(Revision 310)
+--- codereview/models.py	(Revision 315)
 +++ codereview/models.py	(Arbeitskopie)
-@@ -463,7 +463,8 @@
+@@ -471,7 +471,8 @@
      if '@' in nickname:
        nickname = nickname.split('@', 1)[0]
      assert nickname

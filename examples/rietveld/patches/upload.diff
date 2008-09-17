@@ -1,6 +1,6 @@
 Index: static/upload.py
 ===================================================================
---- static/upload.py	(Revision 311)
+--- static/upload.py	(Revision 315)
 +++ static/upload.py	(Arbeitskopie)
 @@ -198,7 +198,7 @@
                                response.headers, response.fp)
