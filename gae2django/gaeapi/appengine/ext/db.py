@@ -425,6 +425,9 @@ class Key(object):
         return '%s_%s' % (self.obj.__class__.__name__,
                           self.obj.id)
 
+    def __cmp__(self, other):
+        return cmp(str(self), str(other))
+
     @classmethod
     def from_path(cls, kind, id_):
         return '%s_%s' % (kind, id)
