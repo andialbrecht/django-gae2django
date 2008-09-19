@@ -105,6 +105,8 @@ class Model(models.Model):
     @classmethod
     def get_by_id(cls, id, parent=None):
         # Ignore parent, we've got an ID
+        if type(id) in (types.ListType, types.TupleType):
+            return [cls.objects.get(id=i) for i in id]
         return cls.objects.get(id=id)
 
     @classmethod
