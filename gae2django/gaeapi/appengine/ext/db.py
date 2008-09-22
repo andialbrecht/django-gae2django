@@ -392,7 +392,7 @@ class GqlQuery(object):
                 field = '-%s' % field
             orderings.append(field)
         if orderings:
-            q.order_by(*orderings)
+            q = q.order_by(*orderings)
         self._results = q
 
     def bind(self, *args, **kwds):
