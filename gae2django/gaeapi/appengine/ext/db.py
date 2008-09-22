@@ -386,6 +386,13 @@ class GqlQuery(object):
                 q = q.filter(**{'%s__lt' % kwd: item})
             else:
                 raise Error('Unhandled operator %s' % op)
+        orderings = []
+        for field, direction in self._gql.orderings():
+            if direction != 1:
+                field = '-%s' % field
+            orderings.append(field)
+        if orderings:
+            q.order_by(*orderings)
         self._results = q
 
     def bind(self, *args, **kwds):
