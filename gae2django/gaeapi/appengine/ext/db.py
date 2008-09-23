@@ -134,8 +134,10 @@ class Model(models.Model):
     @classmethod
     def gql(cls, clause, *args, **kwds):
         from google.appengine.ext import db
-        return db.GqlQuery('SELECT * FROM %s %s' % (cls.__name__,
-                                                    clause), *args, **kwds)
+        query = db.GqlQuery('SELECT * FROM %s %s' % (cls.__name__,
+                                                     clause), *args, **kwds)
+        query._real_cls = cls
+        return query
 
     @classmethod
     def get(cls, keys):
@@ -290,6 +292,7 @@ class GqlQuery(object):
         #print sql, args, kwds
         self._sql = sql
         self._gql = gql.GQL(sql)
+        self._real_cls = None
         self._args = []
         self._kwds = {}
         if args or kwds:
@@ -321,12 +324,15 @@ class GqlQuery(object):
         # Make sql local just for traceback
         sql = self._sql
         from django.db import models
-        cls = None
-        for xcls in models.get_models():
-            if xcls.__name__ == self._gql._entity \
-            or xcls._meta.db_table in self._sql:
-                cls = xcls
-                break
+        # First, let's see if the class is explicitely given.
+        # E.g. Model.gql('xxx') set's _real_cls.
+        cls = self._real_cls
+        if cls is None:
+            for xcls in models.get_models():
+                if xcls.__name__ == self._gql._entity \
+                or xcls._meta.db_table in self._sql:
+                    cls = xcls
+                    break
         if not cls:
             raise Error('Class not found.')
         q = cls.objects
@@ -465,3 +471,9 @@ def put(models):
     elif len(keys) == 1:
         return keys[0]
     return None
+
+def delete(models):
+    if type(models) not in [types.ListType, types.TupleType]:
+        models = [models]
+    for model in models:
+        model.delete()
