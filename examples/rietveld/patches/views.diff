@@ -1,13 +1,15 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(Revision 315)
-+++ codereview/views.py	(Arbeitskopie)
-@@ -617,7 +617,7 @@
+--- codereview/views.py	(revision 324)
++++ codereview/views.py	(working copy)
+@@ -616,8 +616,8 @@
+       user))
    review_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
-       'WHERE closed = FALSE AND reviewers = :1 ORDER BY modified DESC',
+-      'WHERE closed = FALSE AND reviewers = :1 ORDER BY modified DESC',
 -      user.email()) if issue.owner != user]
-+      user.email) if issue.owner != user]
++      'WHERE closed = FALSE ORDER BY modified DESC')
++      if issue.owner != user and user.email in issue.reviewers]
    closed_issues = list(db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = TRUE AND modified > :1 AND owner = :2 '
@@ -20,7 +22,7 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues,
-@@ -1608,11 +1608,11 @@
+@@ -1636,11 +1636,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -36,7 +38,7 @@ Index: codereview/views.py
      tbd, comments = _get_draft_comments(request, issue, True)
      preview = _get_draft_details(request, comments)
      form = form_class(initial={'subject': issue.subject,
-@@ -1634,15 +1634,15 @@
+@@ -1662,15 +1662,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -56,7 +58,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -1772,8 +1772,8 @@
+@@ -1800,8 +1800,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(issue)
    # Decide who should receive mail
@@ -67,7 +69,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2049,7 +2049,7 @@
+@@ -2077,7 +2077,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -76,7 +78,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2060,12 +2060,12 @@
+@@ -2088,12 +2088,12 @@
        'WHERE closed = FALSE AND reviewers = :1',
        user).count()
  

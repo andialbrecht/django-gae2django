@@ -13,6 +13,9 @@ Database API
  - Implement datastore.Query
  - Finish classes in ext.db
  - Remove prints from GqlQuery
+ - Improve support for ListProperty, e.g. it supports queries like
+   'some_list = :1' where 1 is an object in some_list (see Rietveld:
+   codereview.views._show_user --> reviewable by me).
 
 Mail API
  - Unittests
