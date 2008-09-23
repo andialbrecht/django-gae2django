@@ -398,6 +398,7 @@ class GqlQuery(object):
     def bind(self, *args, **kwds):
         self._kwds = kwds
         self._args = args
+        self._results = None
 
     def fetch(self, limit, offset):
         if self._results is None:
