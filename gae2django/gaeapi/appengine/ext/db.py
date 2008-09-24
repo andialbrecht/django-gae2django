@@ -406,7 +406,7 @@ class GqlQuery(object):
         self._args = args
         self._results = None
 
-    def fetch(self, limit, offset):
+    def fetch(self, limit, offset=0):
         if self._results is None:
             self._execute()
         return self._results[offset:limit]
