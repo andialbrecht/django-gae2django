@@ -455,8 +455,65 @@ class Key(object):
         return self.obj.parent.key()
 
 
+# Errors
+
+
 class Error(Exception):
     """db.Error"""
+
+class BadArgumentError(Error):
+    """A bad argument was given to a query method."""
+
+class BadFilterError(Error):
+    """A filter string in the query is invalid."""
+
+class BadKeyError(Error):
+    """The provided key string is not a valid key."""
+
+class BadPropertyError(Error):
+    """The property could not be created because its name is not a string."""
+
+class BadQueryError(Error):
+    """The query string is not a valid query."""
+
+class BadRequestError(Error):
+    """Request to the datastore service has one or more invalid properties."""
+
+class BadValueError(Error):
+    """Invalid value for the property type."""
+
+class ConfigurationError(Error):
+    """A property is not configured correctly."""
+
+class DuplicatePropertyError(Error):
+    """A model definition has more than one property with the same name."""
+
+class InternalError(Error):
+    """There was an error internal to the datastore service."""
+
+class KindError(Error):
+    """Model class that does not match the entity."""
+
+class NotSavedError(Error):
+    """Object is not saved."""
+
+class PropertyError(Error):
+    """The referenced model property does not exist on the data object."""
+
+class ReservedWordError(Error):
+    """A model defines a property whose name is disallowed."""
+
+class Rollback(Error):
+    """Indicates that a function in a transaction wants to roll back."""
+
+class TransactionFailedError(Error):
+    """The transaction or datastore operation could not be committed."""
+
+class CapabilityDisabledError(Error):
+    """Datastore functionality is not available."""
+
+
+# Functions
 
 
 def put(models):
