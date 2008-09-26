@@ -17,7 +17,7 @@
 class CallableString(str):
 
     def __call__(self):
-        return self
+        return str(self)
 
     def id(self):
         try:
