@@ -16,6 +16,7 @@ Database API
  - Improve support for ListProperty, e.g. it supports queries like
    'some_list = :1' where 1 is an object in some_list (see Rietveld:
    codereview.views._show_user --> reviewable by me).
+ - ext.db.get(keys) missing.
 
 Mail API
  - Unittests
