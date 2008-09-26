@@ -47,6 +47,7 @@ class UsersTest(unittest.TestCase):
         user = response.context['user']
         assert callable(user.email)
         assert hasattr(user, 'nickname')
+        assert users.get_current_user() == user
 
     def test_api(self):
         for name in ['create_login_url', 'create_logout_url',

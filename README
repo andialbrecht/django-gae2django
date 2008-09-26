@@ -4,7 +4,7 @@ gae2django - Implementation of the App Engine APIs on top of Django
 gae2django is a Django helper application that provides an implementation of
 Google's App Engine API based on pure Django.
 
-The helper makes it easier to re-use applications originally designed for 
+The helper makes it easier to re-use applications originally designed for
 Google's App Engine environment in a pure Django environment.
 
 
@@ -20,7 +20,7 @@ How to use this Django application
      gae2django.install()
 
 This installs a drop-in replacement for the 'google.appengine' module.
-   
+
 
 Links
 -----
