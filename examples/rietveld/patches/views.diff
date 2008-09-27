@@ -1,6 +1,6 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(Revision 329)
+--- codereview/views.py	(Revision 331)
 +++ codereview/views.py	(Arbeitskopie)
 @@ -616,8 +616,8 @@
        user))
@@ -22,12 +22,12 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues,
-@@ -995,7 +995,7 @@
+@@ -994,7 +994,7 @@
              accounts = models.Account.get_accounts_for_nickname(email)
              if len(accounts) != 1:
                raise db.BadValueError('Unknown user: %s' % email)
--            email = db.Email(accounts[0].user.email())
-+            email = db.Email(accounts[0].user.email)
+-            db_email = db.Email(accounts[0].user.email().lower())
++            db_email = db.Email(accounts[0].user.email.lower())
            elif email.count('@') != 1:
              raise db.BadValueError('Invalid email address: %s' % email)
            else:
