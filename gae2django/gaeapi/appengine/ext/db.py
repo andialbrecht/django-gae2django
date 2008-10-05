@@ -95,7 +95,7 @@ class Model(models.Model):
     @classmethod
     def get_by_key_name(cls, key, parent=None):
         try:
-            kwds = {'gae_key': key}
+            kwds = {'gae_key': str(key)}
             if parent is not None:
                 kwds['gae_ancestry__icontains'] = str(parent.key())
             return cls.objects.get(**kwds)
@@ -103,11 +103,20 @@ class Model(models.Model):
             return None
 
     @classmethod
-    def get_by_id(cls, id, parent=None):
+    def get_by_id(cls, id_, parent=None):
         # Ignore parent, we've got an ID
-        if type(id) in (types.ListType, types.TupleType):
-            return [cls.objects.get(id=i) for i in id]
-        return cls.objects.get(id=id)
+        ret = []
+        if type(id_) not in (types.ListType, types.TupleType):
+            id_ = [id_]
+        for i in id_:
+            try:
+                ret.append(cls.objects.get(id=i))
+            except cls.DoesNotExist:
+                ret.append(None)
+        if len(id_) == 1:
+            return ret[0]
+        else:
+            return ret
 
     @classmethod
     def kind(cls):
@@ -141,7 +150,13 @@ class Model(models.Model):
 
     @classmethod
     def get(cls, keys):
-        return [cls.get_by_key_name(key) for key in keys]
+        if type(keys) not in [types.ListType, types.TupleType]:
+            keys = [keys]
+        instances = [cls.get_by_key_name(key) for key in keys]
+        if len(keys) == 1:
+            return instances[0]
+        else:
+            return instances
 
     def parent_key(self):
         return self.parent.key()
