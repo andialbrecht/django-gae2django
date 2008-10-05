@@ -32,22 +32,41 @@ class UsersTest(unittest.TestCase):
             self._u = User.objects.create_user('test',
                                                'test@example.com', 'testpw')
             self._u.save()
+        try:
+            self._a = User.objects.get(username='admin')
+        except User.DoesNotExist:
+            self._a = User.objects.create_superuser('admin',
+                                                    'admin@example.com',
+                                                    'testpw')
 
     def test_create_login_url(self):
-        assert users.create_login_url('foo') == '/accounts/login/?next=foo'
+        self.assertEqual(users.create_login_url('foo'),
+                         '/accounts/login/?next=foo')
 
     def test_create_logout_url(self):
-        assert users.create_logout_url('foo') == '/accounts/logout/?next=foo'
+        self.assertEqual(users.create_logout_url('foo'),
+                         '/accounts/logout/?next=foo')
 
     def test_get_current_user(self):
-        assert users.get_current_user() is None
+        self.assertEqual(users.get_current_user(), None)
         c = Client()
         c.login(username='test', password='testpw')
         response = c.get('/')
         user = response.context['user']
-        assert callable(user.email)
-        assert hasattr(user, 'nickname')
-        assert users.get_current_user() == user
+        self.assert_(callable(user.email))
+        self.assert_(hasattr(user, 'nickname'))
+        self.assertEqual(users.get_current_user(), user)
+
+    def test_is_current_user_admin(self):
+        self.assertEqual(users.is_current_user_admin(), False)
+        c = Client()
+        c.login(username='test', password='testpw')
+        response = c.get('/')
+        self.assertEqual(users.is_current_user_admin(), False)
+        c = Client()
+        c.login(username='admin', password='testpw')
+        response = c.get('/')
+        self.assertEqual(users.is_current_user_admin(), True)
 
     def test_api(self):
         for name in ['create_login_url', 'create_logout_url',
