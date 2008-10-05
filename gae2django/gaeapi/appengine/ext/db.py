@@ -87,20 +87,27 @@ class Model(models.Model):
         try:
             return cls.objects.get(gae_key=key)
         except cls.DoesNotExist:
-            kwds['key'] = key
+            kwds['gae_key'] = key
             new = cls(**kwds)
             new.save()
             return new
 
     @classmethod
-    def get_by_key_name(cls, key, parent=None):
-        try:
-            kwds = {'gae_key': str(key)}
-            if parent is not None:
-                kwds['gae_ancestry__icontains'] = str(parent.key())
-            return cls.objects.get(**kwds)
-        except cls.DoesNotExist:
-            return None
+    def get_by_key_name(cls, keys, parent=None):
+        if type(keys) not in [types.ListType, types.TupleType]:
+            keys = [keys]
+        result = []
+        for key in keys:
+            try:
+                kwds = {'gae_key': str(key)}
+                if parent is not None:
+                    kwds['gae_ancestry__icontains'] = str(parent.key())
+                result.append(cls.objects.get(**kwds))
+            except cls.DoesNotExist:
+                result.append(None)
+        if len(keys) == 1:
+            return result[0]
+        return result
 
     @classmethod
     def get_by_id(cls, id_, parent=None):
@@ -121,6 +128,10 @@ class Model(models.Model):
     @classmethod
     def kind(cls):
         return cls._meta.db_table
+
+    @classmethod
+    def all(cls):
+        return cls.objects.all()
 
     def key(self):
         return Key(self)
