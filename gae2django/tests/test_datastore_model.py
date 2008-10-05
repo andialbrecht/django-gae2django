@@ -15,6 +15,7 @@
 
 import unittest
 
+from gae2django.gaeapi.appengine.ext import db
 from gae2django.models import RegressionTestModel as TestModel
 
 class DatastoreModelTest(unittest.TestCase):
@@ -64,3 +65,37 @@ class DatastoreModelTest(unittest.TestCase):
                          [item1, item2])
         item1.delete()
         item2.delete()
+
+    def test_get_or_insert(self):
+        item1 = TestModel.get_or_insert('test1', xstring='foo')
+        self.assert_(isinstance(item1, TestModel))
+        test = TestModel.get_or_insert('test1')
+        self.assertEqual(item1, test)
+        self.assertEqual(item1.xstring, 'foo')
+        item1.delete()
+
+    def test_all(self):
+        self.assertEqual(len(TestModel.all()), 0)
+        item1 = TestModel.get_or_insert('test1')
+        self.assertEqual(len(TestModel.all()), 1)
+        self.assert_(item1 in TestModel.all())
+        item1.delete()
+
+    def test_gql(self):
+        item1 = TestModel.get_or_insert('test1', xstring='foo')
+        item2 = TestModel.get_or_insert('test2', xstring='foo')
+        results = TestModel.gql('WHERE xstring = \'foo\'')
+        self.assertEqual(results.count(), 2)
+        self.assert_(item1 in results)
+        self.assert_(item2 in results)
+        item1.delete()
+        item2.delete()
+
+    def test_kind(self):
+        self.assertEqual(TestModel.kind(), TestModel._meta.db_table)
+
+    def test_properties(self):
+        props = TestModel.properties()
+        self.assert_('xstring' in props)
+        self.assert_(isinstance(props['xstring'], db.StringProperty))
+        self.assert_('gae_parent_id' not in props)
