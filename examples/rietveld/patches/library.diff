@@ -1,7 +1,7 @@
 Index: codereview/library.py
 ===================================================================
---- codereview/library.py	(Revision 315)
-+++ codereview/library.py	(Arbeitskopie)
+--- codereview/library.py	(revision 346)
++++ codereview/library.py	(working copy)
 @@ -28,7 +28,7 @@
  register = django.template.Library()
  
