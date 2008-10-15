@@ -99,3 +99,5 @@ class DatastoreModelTest(unittest.TestCase):
         self.assert_('xstring' in props)
         self.assert_(isinstance(props['xstring'], db.StringProperty))
         self.assert_('gae_parent_id' not in props)
+
+    # Instance methods

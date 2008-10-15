@@ -127,11 +127,19 @@ class Model(models.Model):
 
     @classmethod
     def kind(cls):
+        # Return the table name here. It should be the expected output...
         return cls._meta.db_table
 
     @classmethod
     def all(cls):
         return cls.objects.all()
+
+    @classmethod
+    def properties(cls):
+        props = {}
+        [props.setdefault(field.name, field) for field in cls._meta.fields
+         if not field.name.startswith('gae_')]
+        return props
 
     def key(self):
         return Key(self)
