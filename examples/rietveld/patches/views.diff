@@ -1,8 +1,17 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(Revision 350)
-+++ codereview/views.py	(Arbeitskopie)
-@@ -624,8 +624,8 @@
+--- codereview/views.py	(revision 350)
++++ codereview/views.py	(working copy)
+@@ -546,6 +546,8 @@
+   issues = query.fetch(limit+1, offset)
+   more = bool(issues[limit:])
+   if more:
++    # item deletion not supported by Django's QuerySet.
++    issues = list(issues)
+     del issues[limit:]
+   if more:
+     next = '/all?offset=%d&limit=%d' % (offset+limit, limit)
+@@ -624,8 +626,8 @@
        user))
    review_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
@@ -13,7 +22,7 @@ Index: codereview/views.py
    closed_issues = list(db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = TRUE AND modified > :1 AND owner = :2 '
-@@ -633,7 +633,7 @@
+@@ -633,7 +635,7 @@
        datetime.datetime.now() - datetime.timedelta(days=7), user))
    _optimize_draft_counts(my_issues + review_issues + closed_issues)
    return respond(request, 'user.html',
@@ -22,7 +31,7 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues,
-@@ -1036,7 +1036,7 @@
+@@ -1036,7 +1038,7 @@
              accounts = models.Account.get_accounts_for_nickname(email)
              if len(accounts) != 1:
                raise db.BadValueError('Unknown user: %s' % email)
@@ -31,7 +40,7 @@ Index: codereview/views.py
            elif email.count('@') != 1:
              raise db.BadValueError('Invalid email address: %s' % email)
            else:
-@@ -1748,11 +1748,11 @@
+@@ -1748,11 +1750,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -47,7 +56,7 @@ Index: codereview/views.py
      reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                         default=reviewer)
                   for reviewer in reviewers]
-@@ -1778,15 +1778,15 @@
+@@ -1778,15 +1780,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -67,7 +76,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -1916,8 +1916,8 @@
+@@ -1916,8 +1918,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(issue)
    # Decide who should receive mail
@@ -78,7 +87,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2193,7 +2193,7 @@
+@@ -2193,7 +2195,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -87,7 +96,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2204,12 +2204,12 @@
+@@ -2204,12 +2206,12 @@
        'WHERE closed = FALSE AND reviewers = :1',
        user).count()
  
