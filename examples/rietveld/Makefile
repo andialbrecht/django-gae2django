@@ -28,16 +28,16 @@ dev.db:
 	./manage.py syncdb
 
 codereview:
-	svn co http://rietveld.googlecode.com/svn/trunk/codereview@347
+	svn co http://rietveld.googlecode.com/svn/trunk/codereview@350
 	patch -p0 < patches/library.diff
 	patch -p0 < patches/views.diff
 
 static:
-	svn co http://rietveld.googlecode.com/svn/trunk/static@347
+	svn co http://rietveld.googlecode.com/svn/trunk/static@350
 	patch -p0 < patches/upload.diff
 
 templates:
-	svn co http://rietveld.googlecode.com/svn/trunk/templates@347
+	svn co http://rietveld.googlecode.com/svn/trunk/templates@350
 
 django:
 	ln -s ../../django .
