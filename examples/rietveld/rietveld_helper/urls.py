@@ -3,7 +3,7 @@ from django.contrib import admin
 
 from codereview.urls import urlpatterns
 
-admin.autodiscover()
+#admin.autodiscover()
 
 urlpatterns += patterns('',
         (r'^static/(?P<path>.*)$', 'django.views.static.serve',
