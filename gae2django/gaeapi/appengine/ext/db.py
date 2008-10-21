@@ -250,6 +250,8 @@ class ListProperty(models.TextField):
     def to_python(self, value):
         if type(value) in [types.ListType, types.TupleType]:
             return value
+        if value is None:
+            return []
         try:
             return cPickle.loads(base64.decodestring(value))
         except EOFError:
