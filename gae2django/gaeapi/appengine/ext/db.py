@@ -12,6 +12,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import manager
+from django.db.models.query import QuerySet
 from django.db import transaction
 from django.utils.hashcompat import md5_constructor
 
@@ -24,16 +25,53 @@ else:
 MAX_SESSION_KEY = 18446744073709551616L     # 2 << 63
 
 
+class Query(QuerySet):
+
+    def filter(self, *args, **kwds):
+        if kwds:
+            return super(Query, self).filter(*args, **kwds)
+        property_operator, value = args
+        if isinstance(value, basestring):
+            where = u'%s \'%s\'' % (property_operator,
+                                    value.replace("'", "''"))
+        else:
+            where = '%s %r' % (property_operator, value)
+        self.query.add_extra(None, None, [where], None, None, None)
+
+    def _filter(self, *args, **kwds):
+        return super(Query, self).filter(*args, **kwds)
+
+    def order(self, prop):
+        self.query.add_ordering(prop)
+
+    def get(self, *args, **kwds):
+        if args and kwds:
+            return super(Query, self).get(*args, **kwds)
+        return list(self)[0]
+
+    def ancestor(self, ancestor):
+        raise NotImplementedError
+
+    def fetch(self, limit, offset=0):
+        return list(self)[offset:limit]
+
+
 class BaseManager(manager.Manager):
 
     def __iter__(self):
         return self.iterator()
+
+    def _filter(self, *args, **kwds):
+        return self.get_query_set()._filter(*args, **kwds)
 
     def count(self, limit=None):
         return super(BaseManager, self).count()
 
     def order(self, *args, **kwds):
         return super(BaseManager, self).order_by(*args, **kwds)
+
+    def get_query_set(self):
+        return Query(self.model)
 
 
 class BaseModelMeta(models.base.ModelBase):
@@ -407,7 +445,7 @@ class GqlQuery(object):
 #                            item = rel_cls.objects.get(id=item)
 #                        except rel_cls.DoesNotExist:
 #                            continue
-                    q = q.filter(**{kwd: item})
+                    q = q._filter(**{kwd: item})
             elif op == 'is' and kwd == -1: # ANCESTOR
                 if ancestor:
                     raise Error('Ancestor already defined: %s' % ancestor)
@@ -419,13 +457,13 @@ class GqlQuery(object):
                 else:
                     raise Error('Unhandled args %s' % item)
                 pattern = '@%s@' % ancestor.key()
-                q = q.filter(**{'gae_ancestry__contains': pattern})
+                q = q._filter(**{'gae_ancestry__contains': pattern})
             elif op == '>':
                 item = self._resolve_arg(value[0][1][0])
-                q = q.filter(**{'%s__gt' % kwd: item})
+                q = q._filter(**{'%s__gt' % kwd: item})
             elif op == '<':
                 item = self._resolve_arg(value[0][1][0])
-                q = q.filter(**{'%s__lt' % kwd: item})
+                q = q._filter(**{'%s__lt' % kwd: item})
             else:
                 raise Error('Unhandled operator %s' % op)
         orderings = []
