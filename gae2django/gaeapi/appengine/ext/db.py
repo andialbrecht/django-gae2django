@@ -45,7 +45,7 @@ class Query(QuerySet):
         self.query.add_ordering(prop)
 
     def get(self, *args, **kwds):
-        if args and kwds:
+        if kwds:
             return super(Query, self).get(*args, **kwds)
         return list(self)[0]
 
