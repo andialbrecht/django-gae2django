@@ -1,6 +1,6 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(revision 373)
+--- codereview/views.py	(revision 375)
 +++ codereview/views.py	(working copy)
 @@ -580,6 +580,8 @@
    issues = query.fetch(limit+1, offset)
@@ -49,7 +49,7 @@ Index: codereview/views.py
      accounts.order("lower_%s" % property);
      for account in accounts:
        if account.key() in added:
-@@ -1846,11 +1848,11 @@
+@@ -1852,11 +1854,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -65,7 +65,7 @@ Index: codereview/views.py
      reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                         default=reviewer)
                   for reviewer in reviewers]
-@@ -1876,15 +1878,15 @@
+@@ -1882,15 +1884,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -85,7 +85,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -2015,8 +2017,8 @@
+@@ -2021,8 +2023,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(issue)
    # Decide who should receive mail
@@ -96,7 +96,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2293,7 +2295,7 @@
+@@ -2299,7 +2301,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -105,7 +105,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2304,12 +2306,12 @@
+@@ -2310,12 +2312,12 @@
        'WHERE closed = FALSE AND reviewers = :1',
        user).count()
  

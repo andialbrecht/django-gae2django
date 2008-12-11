@@ -1,3 +1,5 @@
+RIETVELDREV=375
+
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
 
@@ -28,17 +30,17 @@ dev.db:
 	./manage.py syncdb
 
 codereview:
-	svn co http://rietveld.googlecode.com/svn/trunk/codereview@373
+	svn co http://rietveld.googlecode.com/svn/trunk/codereview@$(RIETVELDREV)
 	patch -p0 < patches/library.diff
 	patch -p0 < patches/views.diff
 	patch -p0 < patches/models.diff
 
 static:
-	svn co http://rietveld.googlecode.com/svn/trunk/static@373
+	svn co http://rietveld.googlecode.com/svn/trunk/static@$(RIETVELDREV)
 	patch -p0 < patches/upload.diff
 
 templates:
-	svn co http://rietveld.googlecode.com/svn/trunk/templates@373
+	svn co http://rietveld.googlecode.com/svn/trunk/templates@$(RIETVELDREV)
 
 django:
 	ln -s ../../django .
