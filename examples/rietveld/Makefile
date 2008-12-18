@@ -1,4 +1,4 @@
-RIETVELDREV=375
+RIETVELDREV=378
 
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
