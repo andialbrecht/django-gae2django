@@ -413,6 +413,7 @@ class GqlQuery(object):
         #print '-'*10
         #print "xx", sql, self._args, self._kwds
         ancestor = None
+        listprop_filter = []
         for key, value in self._gql.filters().items():
             #print key, value
             kwd, op = key
@@ -445,6 +446,9 @@ class GqlQuery(object):
 #                            item = rel_cls.objects.get(id=item)
 #                        except rel_cls.DoesNotExist:
 #                            continue
+                    if isinstance(cls._meta.get_field(kwd), ListProperty):
+                        listprop_filter.append((kwd, item))
+                        continue
                     q = q._filter(**{kwd: item})
             elif op == 'is' and kwd == -1: # ANCESTOR
                 if ancestor:
@@ -473,6 +477,9 @@ class GqlQuery(object):
             orderings.append(field)
         if orderings:
             q = q.order_by(*orderings)
+        while listprop_filter:
+            kwd, item = listprop_filter.pop()
+            q = [x for x in q if item in getattr(x, kwd)]
         self._results = q
 
     def bind(self, *args, **kwds):
