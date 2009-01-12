@@ -403,8 +403,9 @@ class GqlQuery(object):
         cls = self._real_cls
         if cls is None:
             for xcls in models.get_models():
-                if xcls.__name__ == self._gql._entity \
-                or xcls._meta.db_table in self._sql:
+                if (xcls.__name__ == self._gql._entity \
+                    or xcls._meta.db_table in self._sql) \
+                and not xcls.__module__.startswith('django.'):
                     cls = xcls
                     break
         if not cls:
