@@ -1,6 +1,6 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(revision 387)
+--- codereview/views.py	(revision 390)
 +++ codereview/views.py	(working copy)
 @@ -580,6 +580,8 @@
    issues = query.fetch(limit+1, offset)
@@ -49,7 +49,7 @@ Index: codereview/views.py
      accounts.order("lower_%s" % property);
      for account in accounts:
        if account.key() in added:
-@@ -1919,11 +1921,11 @@
+@@ -1921,11 +1923,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -65,7 +65,7 @@ Index: codereview/views.py
      reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                         default=reviewer)
                   for reviewer in reviewers]
-@@ -1955,15 +1957,15 @@
+@@ -1957,15 +1959,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -85,7 +85,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -2030,7 +2032,10 @@
+@@ -2032,7 +2034,10 @@
          # Get the patch key value without loading the patch entity.
          # NOTE: Unlike the old version of this code, this is the
          # recommended and documented way to do this!
@@ -97,7 +97,7 @@ Index: codereview/views.py
          if pkey in patches:
            patch = patches[pkey]
            c.patch = patch
-@@ -2098,8 +2103,8 @@
+@@ -2100,8 +2105,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(request, issue)
    # Decide who should receive mail
@@ -108,7 +108,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2448,7 +2453,7 @@
+@@ -2450,7 +2455,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -117,7 +117,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2459,12 +2464,12 @@
+@@ -2461,12 +2466,12 @@
        'WHERE closed = FALSE AND reviewers = :1',
        user).count()
  
