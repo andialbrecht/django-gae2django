@@ -16,6 +16,8 @@ from django.db.models.query import QuerySet
 from django.db import transaction
 from django.utils.hashcompat import md5_constructor
 
+from gae2django.middleware import get_current_user
+
 # Use the system (hardware-based) random number generator if it exists.
 # Taken from django.contrib.sessions.backends.base
 if hasattr(random, 'SystemRandom'):
@@ -264,7 +266,21 @@ class UserProperty(models.ForeignKey):
 
     def __init__(self, *args, **kwds):
         kwds = _adjust_keywords(kwds)
+        self._auto_current_user_add = False
+        if 'auto_current_user_add' in kwds:
+            self._auto_current_user_add = True
+            del kwds['auto_current_user_add']
         super(UserProperty, self).__init__(User, *args, **kwds)
+
+    def get_default(self):
+        if self._auto_current_user_add:
+            user = get_current_user()
+            if user is not None:
+                return user.id
+            else:
+                return None
+            return get_current_user()
+        return super(UserProperty, self).get_default()
 
 
 class DateTimeProperty(models.DateTimeField):

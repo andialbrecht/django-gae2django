@@ -1,6 +1,6 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(revision 390)
+--- codereview/views.py	(revision 394)
 +++ codereview/views.py	(working copy)
 @@ -580,6 +580,8 @@
    issues = query.fetch(limit+1, offset)
@@ -31,7 +31,7 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues,
-@@ -1073,7 +1075,7 @@
+@@ -1071,7 +1073,7 @@
              accounts = models.Account.get_accounts_for_nickname(email)
              if len(accounts) != 1:
                raise db.BadValueError('Unknown user: %s' % email)
@@ -40,7 +40,7 @@ Index: codereview/views.py
            elif email.count('@') != 1:
              raise db.BadValueError('Invalid email address: %s' % email)
            else:
-@@ -1284,7 +1286,7 @@
+@@ -1282,7 +1284,7 @@
  
      accounts = models.Account.all()
      accounts.filter("lower_%s >= " % property, query)
@@ -49,7 +49,7 @@ Index: codereview/views.py
      accounts.order("lower_%s" % property);
      for account in accounts:
        if account.key() in added:
-@@ -1921,11 +1923,11 @@
+@@ -1918,11 +1920,11 @@
    if request.method != 'POST':
      reviewers = issue.reviewers[:]
      cc = issue.cc[:]
@@ -65,7 +65,7 @@ Index: codereview/views.py
      reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                         default=reviewer)
                   for reviewer in reviewers]
-@@ -1957,15 +1959,15 @@
+@@ -1954,15 +1956,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -85,7 +85,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -2032,7 +2034,10 @@
+@@ -2029,7 +2031,10 @@
          # Get the patch key value without loading the patch entity.
          # NOTE: Unlike the old version of this code, this is the
          # recommended and documented way to do this!
@@ -97,7 +97,7 @@ Index: codereview/views.py
          if pkey in patches:
            patch = patches[pkey]
            c.patch = patch
-@@ -2100,8 +2105,8 @@
+@@ -2097,8 +2102,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(request, issue)
    # Decide who should receive mail
@@ -108,7 +108,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2450,7 +2455,7 @@
+@@ -2443,7 +2448,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -117,9 +117,9 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2461,12 +2466,12 @@
+@@ -2454,12 +2459,12 @@
        'WHERE closed = FALSE AND reviewers = :1',
-       user).count()
+       user.email()).count()
  
 -    user.nickname = models.Account.get_nickname_for_email(user.email())
 +    user.nickname = models.Account.get_nickname_for_email(user.email)
