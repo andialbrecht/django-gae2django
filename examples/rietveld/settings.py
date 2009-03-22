@@ -88,3 +88,4 @@ INSTALLED_APPS = (
 )
 
 AUTH_PROFILE_MODULE = 'codereview.Account'
+LOGIN_REDIRECT_URL = '/'

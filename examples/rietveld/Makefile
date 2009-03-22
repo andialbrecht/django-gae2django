@@ -41,6 +41,7 @@ static:
 
 templates:
 	svn co http://rietveld.googlecode.com/svn/trunk/templates@$(RIETVELDREV)
+	patch -p0 < patches/base.diff
 
 django:
 	ln -s ../../django .
