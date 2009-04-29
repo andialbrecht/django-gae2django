@@ -255,7 +255,7 @@ class TextProperty(models.TextField):
         super(TextProperty, self).__init__(*args, **kwds)
 
 
-class BooleanProperty(models.BooleanField):
+class BooleanProperty(models.NullBooleanField):
 
     def __init__(self, *args, **kwds):
         kwds = _adjust_keywords(kwds)
@@ -310,6 +310,7 @@ class ListProperty(models.TextField):
             return cPickle.loads(base64.decodestring(value))
         except EOFError:
             return []
+
 
 
 Email = str
