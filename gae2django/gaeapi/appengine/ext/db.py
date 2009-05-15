@@ -445,17 +445,17 @@ class GqlQuery(object):
                     item = val[0]
 
                     if isinstance(item, gql.Literal):
-                        print 'Literal', item
+                        #print 'Literal', item
                         item = item.Get()
-                        print '-->', item
+                        #print '-->', item
                     elif isinstance(item, basestring):
-                        print 'Keyword', item
+                        #print 'Keyword', item
                         item = self._kwds[item]
-                        print '-->', item
+                        #print '-->', item
                     elif isinstance(item, int):
-                        print 'Positional', item
+                        #print 'Positional', item
                         item = self._args[item-1]
-                        print '-->', item
+                        #print '-->', item
                     else:
                         raise Error('Unhandled args %s' % item)
 #                    if rel_cls:
