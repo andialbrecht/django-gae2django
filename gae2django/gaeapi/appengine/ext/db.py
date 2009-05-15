@@ -486,6 +486,12 @@ class GqlQuery(object):
             elif op == '<':
                 item = self._resolve_arg(value[0][1][0])
                 q = q._filter(**{'%s__lt' % kwd: item})
+            elif op == '>=':
+                item = self._resolve_arg(value[0][1][0])
+                q = q._filter(**{'%s__gte' % kwd: item})
+            elif op == '<=':
+                item = self._resolve_arg(value[0][1][0])
+                q = q._filter(**{'%s__lte' % kwd: item})
             else:
                 raise Error('Unhandled operator %s' % op)
         orderings = []
