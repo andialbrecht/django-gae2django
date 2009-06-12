@@ -182,7 +182,9 @@ class Model(models.Model):
         return props
 
     def key(self):
-        return Key(self)
+        key = Key('%s_%s' % (self.__class__.__name__, self.id))
+        key._obj = self
+        return key
 
     def put(self):
         return self.save()
@@ -534,22 +536,89 @@ class GqlQuery(object):
 
 class Key(object):
 
-    def __init__(self, obj):
-        self.obj = obj
+    def __init__(self, key_str):
+        if not isinstance(key_str, basestring):
+            raise BadArgumentError(('Key() expects a string; '
+                                    'received %s (a %s)'
+                                    % (key_str, type(key_str))))
+        self._obj = None
+        self._key_str = key_str
 
     def __str__(self):
-        return '%s_%s' % (self.obj.__class__.__name__,
-                          self.obj.id)
+        return self._key_str
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))
 
+    def _get_obj(self):
+        if self._obj is None:
+            self._init_obj()
+        return self._obj
+
+    def _set_obj(self, obj):
+        self._obj = obj
+
+    obj = property(fget=_get_obj, fset=_set_obj)
+
     @classmethod
-    def from_path(cls, kind, id_):
-        return '%s_%s' % (kind, id)
+    def _find_model_cls(cls, name):
+        from django.db.models.loading import get_models
+        model_cls = None
+        for model in get_models():
+            if model.__module__.startswith('django'):
+                continue
+            if model.__name__ == name:
+                model_cls = model
+                break
+        assert model_cls is not None
+        return model_cls
+
+    def _init_obj(self):
+        clsname, objid = self._key_str.rsplit('_', 1)
+        model_cls = self._find_model_cls(clsname)
+        return model_cls.objects.get(int(objid))
+
+    @classmethod
+    def from_path(cls, *args, **kwds):
+        if kwds and tuple(kwds) != ('parent',):
+            raise BadArgumentError('Excess keyword arguments %r' % kwds)
+        if len(args)%2 != 0 or len(args) == 0:
+            raise BadArgumentError(('A non-zero even number of positional '
+                                    'arguments is required (kind, id or name, '
+                                    'kind, id or name, ...); received %s'
+                                    % repr(args)))
+        cls_name = args[-2]
+        key_name = args[-1]
+        if isinstance(key_name, basestring) and not key_name.isdigit():
+            model_cls = cls._find_model_cls(cls_name)
+            obj = model_cls.objects.get(gae_key=key_name)
+            key = obj.key()
+        else:
+            key = cls('%s_%s' % (cls_name, key_name), **kwds)
+        return key
+
+    def app(self):
+        return self.obj._meta.app_label
+
+    def kind(self):
+        return self.obj.__class__.__name__
 
     def id(self):
+        if self.name():
+            return None
         return self.obj.id
+
+    def name(self):
+        return self.obj.gae_key
+
+    def id_or_name(self):
+        if self.name() is None:
+            return self.id()
+        return self.name()
+
+    def has_id_or_name(self):
+        # Always returns True as we've always have at least an id...
+        return True
 
     def parent(self):
         return self.obj.parent.key()

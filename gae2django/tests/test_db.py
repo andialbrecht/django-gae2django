@@ -1,0 +1,90 @@
+#
+# Copyright 2008 Andi Albrecht <albrecht.andi@gmail.com>
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import unittest
+
+from gae2django.gaeapi.appengine.ext import db
+from gae2django.models import RegressionTestModel as TestModel
+
+
+class KeyTest(unittest.TestCase):
+
+    def setUp(self):
+        self._test = TestModel(xstring="foo")
+        self._test.put()
+        self._key = self._test.key()
+        self._test_name = TestModel(xstring="foo", key_name="fookey")
+        self._test_name.put()
+        self._key_name = self._test_name.key()
+
+    def tearDown(self):
+        self._test.delete()
+        self._test_name.delete()
+        self._test = self._key = None
+        self._test_name = self._key_name = None
+
+    # constructor
+
+    def test_constructor(self):
+        self.assertRaises(TypeError, db.Key, ('foo',), {'should': 'fail'})
+        self.assertRaises(db.BadArgumentError, db.Key, (123,))
+        self.assertRaises(db.BadArgumentError, db.Key, (range(2),))
+
+    # class methods
+
+    def test_from_path(self):
+        self.assertRaises(db.BadArgumentError, db.Key.from_path,
+                          ('foo', 1), should='fail')
+        self.assertRaises(db.BadArgumentError, db.Key.from_path,
+                          ('foo',))
+        self.assertEqual(db.Key.from_path('RegressionTestModel',
+                                          self._test.id), self._key)
+        k = db.Key.from_path('RegressionTestModel', 'fookey')
+        self.assertEqual(db.Key.from_path('RegressionTestModel', 'fookey'),
+                         self._key_name)
+
+    # instance methods
+
+    def test_app(self):
+        self.assertEqual(self._key.app(), 'gae2django')
+
+    def test_kind(self):
+        self.assertEqual(self._key.kind(), 'RegressionTestModel')
+
+    def test_id(self):
+        self.assertEqual(self._key.id(), self._test.id)
+        self.assertEqual(self._key_name.id(), None)
+
+    def test_name(self):
+        self.assertEqual(self._key_name.name(), 'fookey')
+        self.assertEqual(self._key.name(), None)
+
+    def test_id_or_name(self):
+        self.assertEqual(self._key.id_or_name(), self._test.id)
+        self.assertEqual(self._key_name.id_or_name(), 'fookey')
+
+    def test_has_id_or_name(self):
+        self.assertEqual(self._key.has_id_or_name(), True)
+        self.assertEqual(self._key_name.has_id_or_name(), True)
+
+    def test_parent(self):
+        t1 = TestModel(xstring="child", parent=self._test)
+        t1.put()
+        self.assertEqual(t1.key().parent(), self._key)
+        t1.delete()
+        t2 = TestModel(xstring="child", parent=self._test_name)
+        t2.put()
+        self.assertEqual(t2.key().parent(), self._key_name)
+        t2.delete()

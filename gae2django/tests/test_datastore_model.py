@@ -35,13 +35,13 @@ class DatastoreModelTest(unittest.TestCase):
         item2.delete()
 
     def test_get_by_id(self):
-        item1 = TestModel(key_name='test1')
+        item1 = TestModel(xstring='test1')
         item1.put()
         self.assertEqual(TestModel.get_by_id(item1.key().id()), item1)
         self.assertEqual(TestModel.get_by_id(-1), None)
         self.assertEqual(TestModel.get_by_id([item1.key().id(), -1]),
                          [item1, None])
-        item2 = TestModel(key_name='test2')
+        item2 = TestModel(xstring='test2')
         item2.put()
         self.assertEqual(TestModel.get_by_id([item1.key().id(),
                                               item2.key().id()]),
