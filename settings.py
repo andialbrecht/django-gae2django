@@ -82,3 +82,7 @@ INSTALLED_APPS = (
     'django.contrib.sites',
     'gae2django',
 )
+
+# Uncomment the following to lines to run unittests with coverage reports.
+#TEST_RUNNER = 'gae2django.tests.test_runner_with_coverage'
+#COVERAGE_HTML_DIR = 'coverage_report'
