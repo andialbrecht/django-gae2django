@@ -1,8 +1,8 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(revision 422)
+--- codereview/views.py	(revision 427)
 +++ codereview/views.py	(working copy)
-@@ -632,6 +632,8 @@
+@@ -651,6 +651,8 @@
    issues = query.fetch(limit+1, offset)
    more = bool(issues[limit:])
    if more:
@@ -11,19 +11,21 @@ Index: codereview/views.py
      del issues[limit:]
    if more:
      next = '/all?offset=%d&limit=%d' % (offset+limit, limit)
-@@ -710,8 +712,8 @@
+@@ -730,9 +732,10 @@
        user))
    review_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
--      'WHERE closed = FALSE AND reviewers = :1 ORDER BY modified DESC',
--      user.email()) if issue.owner != user]
-+      'WHERE closed = FALSE ORDER BY modified DESC')
-+      if issue.owner != user and user.email in issue.reviewers]
-   closed_issues = list(db.GqlQuery(
+-      'WHERE closed = FALSE AND reviewers = :1 '
++      'WHERE closed = FALSE '
+       'ORDER BY modified DESC', user.email())
+-      if issue.owner != user and _can_view_issue(request.user, issue)]
++      if issue.owner != user and _can_view_issue(request.user, issue)
++                   and user.email in issue.reviewers]
+   closed_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = TRUE AND modified > :1 AND owner = :2 '
-@@ -719,7 +721,7 @@
-       datetime.datetime.now() - datetime.timedelta(days=7), user))
+@@ -741,7 +744,7 @@
+       if _can_view_issue(request.user, issue)]
    _optimize_draft_counts(my_issues + review_issues + closed_issues)
    return respond(request, 'user.html',
 -                 {'email': user.email(),
@@ -31,7 +33,7 @@ Index: codereview/views.py
                    'my_issues': my_issues,
                    'review_issues': review_issues,
                    'closed_issues': closed_issues,
-@@ -1139,7 +1141,7 @@
+@@ -1162,7 +1165,7 @@
              account = models.Account.get_account_for_nickname(email)
              if account is None:
                raise db.BadValueError('Unknown user: %s' % email)
@@ -40,7 +42,7 @@ Index: codereview/views.py
            elif email.count('@') != 1:
              raise db.BadValueError('Invalid email address: %s' % email)
            else:
-@@ -1313,7 +1315,7 @@
+@@ -1336,7 +1339,7 @@
    for msg in issue.message_set.order('date'):
      if not msg.draft:
        messages.append(msg)
@@ -49,7 +51,7 @@ Index: codereview/views.py
        has_draft_message = True
    return respond(request, 'issue.html',
                   {'issue': issue, 'patchsets': patchsets,
-@@ -1350,7 +1352,7 @@
+@@ -1373,7 +1376,7 @@
  
      accounts = models.Account.all()
      accounts.filter("lower_%s >= " % property, query)
@@ -58,7 +60,7 @@ Index: codereview/views.py
      accounts.order("lower_%s" % property);
      for account in accounts:
        if account.key() in added:
-@@ -1985,7 +1987,7 @@
+@@ -2010,7 +2013,7 @@
    template = 'mails/comment.txt'
    if request.user == issue.owner:
      if db.GqlQuery('SELECT * FROM Message WHERE ANCESTOR IS :1 AND sender = :2',
@@ -67,7 +69,7 @@ Index: codereview/views.py
        template = 'mails/review.txt'
        files, patch = _get_affected_files(issue)
        context.update({'files': files, 'patch': patch, 'base': issue.base})
-@@ -2005,16 +2007,16 @@
+@@ -2030,16 +2033,16 @@
    if not request.POST.get('message_only', None):
      query = models.Message.gql(('WHERE issue = :1 AND sender = :2 '
                                  'AND draft = TRUE'), issue,
@@ -89,7 +91,7 @@ Index: codereview/views.py
      reviewers = [models.Account.get_nickname_for_email(reviewer,
                                                         default=reviewer)
                   for reviewer in reviewers]
-@@ -2046,15 +2048,15 @@
+@@ -2071,15 +2074,15 @@
      reviewers = _get_emails(form, 'reviewers')
    else:
      reviewers = issue.reviewers
@@ -109,7 +111,7 @@ Index: codereview/views.py
    if not form.is_valid():
      return respond(request, 'publish.html', {'form': form, 'issue': issue})
    issue.reviewers = reviewers
-@@ -2121,7 +2123,10 @@
+@@ -2146,7 +2149,10 @@
          # Get the patch key value without loading the patch entity.
          # NOTE: Unlike the old version of this code, this is the
          # recommended and documented way to do this!
@@ -121,7 +123,7 @@ Index: codereview/views.py
          if pkey in patches:
            patch = patches[pkey]
            c.patch = patch
-@@ -2189,8 +2194,8 @@
+@@ -2214,8 +2220,8 @@
    """Helper to create a Message instance and optionally send an email."""
    template, context = _get_mail_template(request, issue)
    # Decide who should receive mail
@@ -132,7 +134,7 @@ Index: codereview/views.py
    cc = issue.cc[:]
    reply_to = to + cc
    if my_email in to and len(to) > 1:  # send_mail() wants a non-empty to list
-@@ -2288,7 +2293,7 @@
+@@ -2313,7 +2319,7 @@
    """/<issue>/draft_message - Retrieve, modify and delete draft messages."""
    query = models.Message.gql(('WHERE issue = :1 AND sender = :2 '
                                'AND draft = TRUE'),
@@ -141,7 +143,7 @@ Index: codereview/views.py
    if query.count() == 0:
      draft_message = None
    else:
-@@ -2328,7 +2333,7 @@
+@@ -2353,7 +2359,7 @@
    """
    if draft is None:
      draft = models.Message(issue=request.issue, parent=request.issue,
@@ -150,7 +152,7 @@ Index: codereview/views.py
    draft.text = request.POST.get('reviewmsg')
    draft.put()
    return HttpResponse(draft.text, content_type='text/plain')
-@@ -2528,7 +2533,7 @@
+@@ -2559,7 +2565,7 @@
  
  def _user_popup(request):
    user = request.user_to_show
@@ -159,7 +161,7 @@ Index: codereview/views.py
    if popup_html is None:
      num_issues_created = db.GqlQuery(
        'SELECT * FROM Issue '
-@@ -2537,14 +2542,14 @@
+@@ -2568,14 +2574,14 @@
      num_issues_reviewed = db.GqlQuery(
        'SELECT * FROM Issue '
        'WHERE closed = FALSE AND reviewers = :1',

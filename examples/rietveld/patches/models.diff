@@ -1,8 +1,8 @@
 Index: codereview/models.py
 ===================================================================
---- codereview/models.py	(revision 417)
+--- codereview/models.py	(revision 427)
 +++ codereview/models.py	(working copy)
-@@ -535,7 +535,8 @@
+@@ -536,7 +536,8 @@
      if account is not None:
        return account
      nickname = cls.create_nickname_for_user(user)
