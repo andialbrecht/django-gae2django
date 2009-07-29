@@ -20,14 +20,12 @@ Index: codereview/views.py
      del issues[limit:]
    if more:
      next = '/all?offset=%d&limit=%d' % (offset+limit, limit)
-@@ -730,9 +732,10 @@
-       user))
+@@ -731,8 +733,9 @@
    review_issues = [issue for issue in db.GqlQuery(
        'SELECT * FROM Issue '
--      'WHERE closed = FALSE AND reviewers = :1 '
+       'WHERE closed = FALSE AND reviewers = :1 '
 -      'ORDER BY modified DESC', user.email())
 -      if issue.owner != user and _can_view_issue(request.user, issue)]
-+      'WHERE closed = FALSE '
 +      'ORDER BY modified DESC', user.email)
 +      if issue.owner != user and _can_view_issue(request.user, issue)
 +                   and user.email in issue.reviewers]
