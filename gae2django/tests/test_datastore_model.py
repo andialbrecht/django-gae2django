@@ -20,6 +20,14 @@ from gae2django.models import RegressionTestModel as TestModel
 
 class DatastoreModelTest(unittest.TestCase):
 
+    def setUp(self):
+        self.item1 = TestModel(key_name='foo1')
+        self.item1.put()
+
+    def tearDown(self):
+        self.item1.delete()
+        self.item1 = None
+
     # Class methods
 
     def test_get(self):
@@ -75,9 +83,9 @@ class DatastoreModelTest(unittest.TestCase):
         item1.delete()
 
     def test_all(self):
-        self.assertEqual(len(TestModel.all()), 0)
-        item1 = TestModel.get_or_insert('test1')
         self.assertEqual(len(TestModel.all()), 1)
+        item1 = TestModel.get_or_insert('test1')
+        self.assertEqual(len(TestModel.all()), 2)
         self.assert_(item1 in TestModel.all())
         item1.delete()
 
@@ -101,3 +109,16 @@ class DatastoreModelTest(unittest.TestCase):
         self.assert_('gae_parent_id' not in props)
 
     # Instance methods
+
+    def test_key(self):
+        key = self.item1.key()
+        self.assert_(isinstance(key, db.Key))
+
+    def test_key_multiple_calls(self):
+        # make sure multiple calls to key() return the same instance of Key
+        # see issue8
+        key1 = self.item1.key()
+        key2 = self.item1.key()
+        self.assertEqual(id(key1), id(key2),
+                         ('Multiple calls to Model.key() returned different'
+                          ' objects: %s %s.' % (id(key1), id(key2))))

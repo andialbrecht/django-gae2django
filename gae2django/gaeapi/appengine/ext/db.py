@@ -120,6 +120,7 @@ class Model(models.Model):
         if 'key_name' in kwds:
             kwds['gae_key'] = kwds['key_name']
             del kwds['key_name']
+        self._key = None
         super(Model, self).__init__(*args, **kwds)
 
     @classmethod
@@ -182,9 +183,10 @@ class Model(models.Model):
         return props
 
     def key(self):
-        key = Key('%s_%s' % (self.__class__.__name__, self.id))
-        key._obj = self
-        return key
+        if self._key is None:
+            self._key = Key('%s_%s' % (self.__class__.__name__, self.id))
+            self._key._obj = self
+        return self._key
 
     def put(self):
         return self.save()
@@ -549,6 +551,9 @@ class Key(object):
 
     def __cmp__(self, other):
         return cmp(str(self), str(other))
+
+    def __hash__(self):
+        return hash(self.__str__())
 
     def _get_obj(self):
         if self._obj is None:

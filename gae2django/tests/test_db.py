@@ -88,3 +88,17 @@ class KeyTest(unittest.TestCase):
         t2.put()
         self.assertEqual(t2.key().parent(), self._key_name)
         t2.delete()
+
+    # internals
+
+    def test_compare(self):
+        # see issue8
+        k1 = db.Key('foo1')
+        k2 = db.Key('foo1')
+        self.assert_(k1 == k2, '%r doesn\'t compare equal to %r' % (k1, k2))
+        self.assert_(k2 in set([k1]), 'set comparsion failed')
+        self.assert_(not k1 is k2, 'is comparsion failed')
+
+    def test__str__(self):
+        k1 = db.Key('foo1')
+        self.assertEqual('foo1', str(k1))
