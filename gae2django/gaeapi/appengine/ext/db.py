@@ -29,6 +29,10 @@ MAX_SESSION_KEY = 18446744073709551616L     # 2 << 63
 
 class Query(QuerySet):
 
+    def __init__(self, *args, **kwds):
+        super(Query, self).__init__(*args, **kwds)
+        self._listprop_filter = None
+
     def filter(self, *args, **kwds):
         if kwds:
             return super(Query, self).filter(*args, **kwds)
@@ -56,6 +60,20 @@ class Query(QuerySet):
 
     def fetch(self, limit, offset=0):
         return list(self)[offset:limit]
+
+    def iterator(self):
+        """Handles ListProperty filters."""
+        for obj in super(Query, self).iterator():
+            if self._listprop_filter is not None:
+                matched = False
+                for kwd, item in listprop_filter:
+                    if item in getattr(x, kwd):
+                        matched = True
+                        break
+                if matched:
+                    yield obj
+            else:
+                yield obj
 
 
 class BaseManager(manager.Manager):
@@ -505,9 +523,8 @@ class GqlQuery(object):
             orderings.append(field)
         if orderings:
             q = q.order_by(*orderings)
-        while listprop_filter:
-            kwd, item = listprop_filter.pop()
-            q = [x for x in q if item in getattr(x, kwd)]
+        if listprop_filter:
+            q._listprop_filer = listprop_filter
         self._results = q
 
     def bind(self, *args, **kwds):
