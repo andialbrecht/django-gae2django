@@ -19,6 +19,8 @@ import logging
 import os
 import sys
 
+from gae2django.utils import CallableString
+
 
 def install():
     """Imports the API and makes it available as 'google.appengine'."""
@@ -26,3 +28,17 @@ def install():
     sys.modules['google'] = gaeapi
     sys.modules['gaeapi'] = gaeapi
     os.environ['SERVER_SOFTWARE'] = 'gae2django drop-in environment'
+    _install_pg_adapter()
+
+
+def _install_pg_adapter():
+    """Install a psycopg2 adapter to make use of callable strings."""
+    # We cannot access settings during install() of gae2django.
+    # So let's get proactive and try to register the adapter anyway.
+    # See: http://code.djangoproject.com/ticket/5996
+    try:
+        import psycopg2.extensions
+    except ImportError, err:
+        return
+    psycopg2.extensions.register_adapter(CallableString,
+                                         psycopg2.extensions.QuotedString)

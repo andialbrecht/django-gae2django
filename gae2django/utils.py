@@ -14,10 +14,17 @@
 # limitations under the License.
 
 
-class CallableString(str):
+class CallableString(unicode):
+    """Helper class providing a callable unicode string.
+
+    This helper class is used to simulate a hybrid user.email attribute.
+    App Engine requires this attribute to be callable, returning a string.
+    Django expects just a string here.
+    CallableString aims to solve this problem.
+    """
 
     def __call__(self):
-        return str(self)
+        return unicode(self)
 
     def id(self):
         try:
