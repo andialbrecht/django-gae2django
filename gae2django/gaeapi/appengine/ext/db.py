@@ -45,6 +45,7 @@ class Query(QuerySet):
         else:
             where = '%s %r' % (property_operator, value)
         self.query.add_extra(None, None, [where], None, None, None)
+        return self
 
     def _filter(self, *args, **kwds):
         return super(Query, self).filter(*args, **kwds)

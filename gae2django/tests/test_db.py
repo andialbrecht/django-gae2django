@@ -102,3 +102,33 @@ class KeyTest(unittest.TestCase):
     def test__str__(self):
         k1 = db.Key('foo1')
         self.assertEqual('foo1', str(k1))
+
+
+class TestQuery(unittest.TestCase):
+
+    def setUp(self):
+        TestModel.objects.all().delete()
+        for i in range(3):
+            obj = TestModel()
+            obj.xstring = 'foo%d' % i
+            obj.save()
+
+    def tearDown(self):
+        TestModel.objects.all().delete()
+
+    def test_filter(self):
+        q = TestModel.all()
+        self.assert_(isinstance(q, db.Query))
+        q = q.filter('xstring =', 'foo1')
+        self.assert_(isinstance(q, db.Query))
+        self.assertEqual(len(list(q)), 1)
+        q = TestModel.all().filter('xstring =', 'foo')
+        self.assert_(isinstance(q, db.Query))
+        self.assertEqual(len(list(q)), 0)
+
+    def test_query_get(self):
+        q = TestModel.all()
+        q = q.filter('xstring =', 'foo1')
+        item = q.get()
+        self.assert_(isinstance(item, TestModel))
+        self.assertEqual(item.xstring, 'foo1')
