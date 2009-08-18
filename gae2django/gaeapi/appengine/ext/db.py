@@ -13,10 +13,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import manager
 from django.db.models.query import QuerySet
+from django.db.models.signals import post_init
 from django.db import transaction
 from django.utils.hashcompat import md5_constructor
 
 from gae2django.middleware import get_current_user
+from gae2django.utils import CallableString
 
 # Use the system (hardware-based) random number generator if it exists.
 # Taken from django.contrib.sessions.backends.base
@@ -303,6 +305,26 @@ class UserProperty(models.ForeignKey):
                 return None
             return get_current_user()
         return super(UserProperty, self).get_default()
+
+def patch_user_model(sender, **kwds):
+    if sender != User:
+        return
+    if not 'instance' in kwds:  # just to go for sure, shouldn't happen
+        return
+    instance = kwds['instance']
+    if not isinstance(instance.email, CallableString):
+        instance.email = CallableString(instance.email)
+    if not hasattr(instance, 'nickname'):
+        nickname = CallableString()
+        try:
+            profile = instance.get_profile()
+            if hasattr(profile, 'nickname'):
+                nickname = CallableString(profile.nickname)
+        except:
+            pass
+        instance.nickname = nickname
+
+post_init.connect(patch_user_model)
 
 
 class DateTimeProperty(models.DateTimeField):

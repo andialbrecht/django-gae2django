@@ -48,8 +48,10 @@ class UsersTest(unittest.TestCase):
                          '/accounts/logout/?next=foo')
 
     def test_get_current_user(self):
-        self.assertEqual(users.get_current_user(), None)
         c = Client()
+        c.logout()
+        c.get('/')
+        self.assertEqual(users.get_current_user(), None)
         c.login(username='test', password='testpw')
         response = c.get('/')
         user = response.context['user']
@@ -78,3 +80,4 @@ class UsersTest(unittest.TestCase):
                      'RedirectTooLongError']:
             assert hasattr(users, name)
             assert issubclass(getattr(users, name), Exception)
+

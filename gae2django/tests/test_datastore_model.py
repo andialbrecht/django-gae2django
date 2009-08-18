@@ -15,8 +15,12 @@
 
 import unittest
 
+from django.contrib.auth.models import User
+from django.test.client import Client
+
 from gae2django.gaeapi.appengine.ext import db
 from gae2django.models import RegressionTestModel as TestModel
+
 
 class DatastoreModelTest(unittest.TestCase):
 
@@ -133,3 +137,41 @@ class TestListProperty(unittest.TestCase):
         tobj = TestModel.get_by_id(obj.key().id())
         self.assertEqual(tobj, obj)
         self.assertEqual(tobj.xlist, ["foo", "bar", "baz"])
+
+
+class TestUserProperty(unittest.TestCase):
+
+    def setUp(self):
+        try:
+            self._u = User.objects.get(username='test')
+        except User.DoesNotExist:
+            self._u = User.objects.create_user('test',
+                                               'test@example.com', 'testpw')
+            self._u.save()
+        try:
+            self._a = User.objects.get(username='admin')
+        except User.DoesNotExist:
+            self._a = User.objects.create_superuser('admin',
+                                                    'admin@example.com',
+                                                    'testpw')
+
+    def test_auto_current_user_add(self):
+        c = Client()
+        c.login(username='test', password='testpw')
+        response = c.get('/')
+        user = response.context['user']
+        self.assert_(user is not None)
+        obj = TestModel()
+        obj.save()
+        self.assertEqual(obj.xuser, user)
+
+    def test_user_property_patched(self):
+        c = Client()
+        c.login(username='test', password='testpw')
+        response = c.get('/')
+        user = response.context['user']
+        obj = TestModel()
+        obj.save()
+        self.assert_(callable(obj.xuser.email))
+        self.assert_(hasattr(obj.xuser, 'nickname'))
+        self.assert_(callable(obj.xuser.nickname))
