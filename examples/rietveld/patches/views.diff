@@ -1,8 +1,8 @@
 Index: codereview/views.py
 ===================================================================
---- codereview/views.py	(revision 427)
+--- codereview/views.py	(revision 439)
 +++ codereview/views.py	(working copy)
-@@ -651,6 +651,8 @@
+@@ -655,6 +655,8 @@
    issues = query.fetch(limit+1, offset)
    more = bool(issues[limit:])
    if more:
@@ -11,7 +11,7 @@ Index: codereview/views.py
      del issues[limit:]
    if more:
      next = '/all?offset=%d&limit=%d' % (offset+limit, limit)
-@@ -2146,7 +2149,10 @@
+@@ -2175,7 +2177,10 @@
          # Get the patch key value without loading the patch entity.
          # NOTE: Unlike the old version of this code, this is the
          # recommended and documented way to do this!
