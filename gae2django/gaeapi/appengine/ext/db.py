@@ -12,6 +12,8 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import manager
+from django.db.models.fields.related import (
+    ReverseSingleRelatedObjectDescriptor as RSROD)
 from django.db.models.query import QuerySet
 from django.db.models.signals import post_init
 from django.db import transaction
@@ -366,6 +368,18 @@ Link = str
 Text = unicode
 
 
+class G2DReverseSingleRelatedObjectDescriptor(RSROD):
+
+    def get_value_for_datastore(self, model_instance):
+        return getattr(model_instance, self.__id_attr_name())
+
+    def __id_attr_name(self):
+        return self._attr_name()
+
+    def _attr_name(self):
+        return self.field.name
+
+
 class ReferenceProperty(models.ForeignKey):
 
     def __init__(self, other, *args, **kwds):
@@ -375,6 +389,18 @@ class ReferenceProperty(models.ForeignKey):
             del kwds['collection_name']
         super(ReferenceProperty, self).__init__(other, *args, **kwds)
 
+    def contribute_to_class(self, cls, name):
+        # This is mainly a copy of the ForeignKey's contribute_to_class.
+        # The only difference is that we use our custom
+        # ReverseSingleRelatedObjectDescriptor that implements
+        # get_value_for_datastore (see issue 1).
+        super(ReferenceProperty, self).contribute_to_class(cls, name)
+        setattr(cls, self.name, G2DReverseSingleRelatedObjectDescriptor(self))
+        if isinstance(self.rel.to, basestring):
+            target = self.rel.to
+        else:
+            target = self.rel.to._meta.db_table
+        cls._meta.duplicate_targets[self.column] = (target, "o2m")
 
 class BlobProperty(models.TextField):
 
