@@ -174,14 +174,16 @@ class Model(models.Model):
     def get_by_id(cls, id_, parent=None):
         # Ignore parent, we've got an ID
         ret = []
+        return_list = True
         if type(id_) not in (types.ListType, types.TupleType):
             id_ = [id_]
+            return_list = False
         for i in id_:
             try:
                 ret.append(cls.objects.get(id=i))
             except cls.DoesNotExist:
                 ret.append(None)
-        if len(id_) == 1:
+        if len(id_) == 1 and not return_list:
             return ret[0]
         else:
             return ret
