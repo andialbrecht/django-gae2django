@@ -65,10 +65,10 @@ class Query(QuerySet):
         """Handles ListProperty filters."""
         for obj in super(Query, self).iterator():
             if self._listprop_filter is not None:
-                matched = False
-                for kwd, item in listprop_filter:
-                    if item in getattr(x, kwd):
-                        matched = True
+                matched = True
+                for kwd, item in self._listprop_filter:
+                    if item not in getattr(obj, kwd):
+                        matched = False
                         break
                 if matched:
                     yield obj
@@ -449,7 +449,7 @@ class GqlQuery(object):
                     break
         if not cls:
             raise Error('Class not found.')
-        q = cls.objects
+        q = cls.objects.all()
         #print '-'*10
         #print "xx", sql, self._args, self._kwds
         ancestor = None
@@ -524,7 +524,7 @@ class GqlQuery(object):
         if orderings:
             q = q.order_by(*orderings)
         if listprop_filter:
-            q._listprop_filer = listprop_filter
+            q._listprop_filter = listprop_filter
         self._results = q
 
     def bind(self, *args, **kwds):
@@ -549,7 +549,7 @@ class GqlQuery(object):
         if self._results is None:
             self._execute()
         if self._results:
-            return self._results[0]
+            return self._results.get()
         return None
 
 

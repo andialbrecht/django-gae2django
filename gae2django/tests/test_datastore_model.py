@@ -122,3 +122,14 @@ class DatastoreModelTest(unittest.TestCase):
         self.assertEqual(id(key1), id(key2),
                          ('Multiple calls to Model.key() returned different'
                           ' objects: %s %s.' % (id(key1), id(key2))))
+
+
+class TestListProperty(unittest.TestCase):
+
+    def test_listproperty_save_restore(self):
+        obj = TestModel()
+        obj.xlist = ["foo", "bar", "baz"]
+        obj.save()
+        tobj = TestModel.get_by_id(obj.key().id())
+        self.assertEqual(tobj, obj)
+        self.assertEqual(tobj.xlist, ["foo", "bar", "baz"])
