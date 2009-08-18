@@ -31,7 +31,6 @@ dev.db:
 
 codereview:
 	svn co http://rietveld.googlecode.com/svn/trunk/codereview@$(RIETVELDREV)
-	patch -p0 < patches/views.diff
 
 static:
 	svn co http://rietveld.googlecode.com/svn/trunk/static@$(RIETVELDREV)
