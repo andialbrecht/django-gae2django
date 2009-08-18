@@ -132,3 +132,37 @@ class TestQuery(unittest.TestCase):
         item = q.get()
         self.assert_(isinstance(item, TestModel))
         self.assertEqual(item.xstring, 'foo1')
+
+
+class TestGqlQuery(unittest.TestCase):
+
+    def setUp(self):
+        TestModel.objects.all().delete()
+        for i in range(10):
+            obj = TestModel()
+            obj.xstring = 'foo%d' % i
+            obj.save()
+
+    def tearDown(self):
+        TestModel.objects.all().delete()
+
+    def test_fetch(self):
+        q = db.GqlQuery('SELECT * FROM RegressionTestModel')
+        items = q.fetch(1000)
+        self.assert_(isinstance(items, list))
+        self.assertEqual(len(items), 10)
+        q = db.GqlQuery('SELECT * FROM RegressionTestModel ORDER BY xstring')
+        items = q.fetch(2)
+        self.assertEqual(len(items), 2)
+        q = db.GqlQuery('SELECT * FROM RegressionTestModel ORDER BY xstring')
+        items = q.fetch(2)
+        for i in range(2):
+            self.assertEqual(items[i].xstring, 'foo%d' % i)
+        # once again with offset
+        q = db.GqlQuery('SELECT * FROM RegressionTestModel ORDER BY xstring')
+        items = q.fetch(2, 4)
+        for i in range(2):
+            self.assertEqual(items[i].xstring, 'foo%d' % (i+4))
+        q = db.GqlQuery('SELECT * FROM RegressionTestModel ORDER BY xstring')
+        items = q.fetch(2, 100)
+        self.assertEqual(len(items), 0)

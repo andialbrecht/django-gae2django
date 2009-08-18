@@ -560,7 +560,7 @@ class GqlQuery(object):
     def fetch(self, limit, offset=0):
         if self._results is None:
             self._execute()
-        return self._results[offset:limit]
+        return list(self._results[offset:offset+limit])
 
     def count(self, limit=None):
         if self._results is None:
