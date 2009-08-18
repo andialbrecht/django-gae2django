@@ -22,12 +22,12 @@ import sys
 from gae2django.utils import CallableString
 
 
-def install():
+def install(server_software='gae2django'):
     """Imports the API and makes it available as 'google.appengine'."""
     import gaeapi
     sys.modules['google'] = gaeapi
     sys.modules['gaeapi'] = gaeapi
-    os.environ['SERVER_SOFTWARE'] = 'gae2django drop-in environment'
+    os.environ['SERVER_SOFTWARE'] = server_software
     _install_pg_adapter()
 
 
