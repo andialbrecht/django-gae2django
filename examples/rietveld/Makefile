@@ -1,4 +1,4 @@
-RIETVELDREV=427
+RIETVELDREV=439
 
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
@@ -33,7 +33,6 @@ codereview:
 	svn co http://rietveld.googlecode.com/svn/trunk/codereview@$(RIETVELDREV)
 	patch -p0 < patches/library.diff
 	patch -p0 < patches/views.diff
-	patch -p0 < patches/models.diff
 
 static:
 	svn co http://rietveld.googlecode.com/svn/trunk/static@$(RIETVELDREV)
