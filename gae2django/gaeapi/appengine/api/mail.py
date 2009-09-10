@@ -73,9 +73,13 @@ class EmailMessage(object):
         self.initialize(**kw)
 
     def initialize(self, **kw):
-        for field in ['sender', 'to', 'cc', 'bcc', 'reply_to',
-                      'subject', 'body', 'html', 'attachments']:
-            setattr(self, field, kw.get(field, None))
+        list_fields = ('to', 'cc', 'bcc', 'reply_to')
+        for field in ('sender', 'to', 'cc', 'bcc', 'reply_to',
+                      'subject', 'body', 'html', 'attachments'):
+            value = kw.get(field, None)
+            if field in list_fields and isinstance(value, basestring):
+                value = [value]
+            setattr(self, field, value)
 
     def check_initialized(self):
         if not self.sender:
@@ -98,11 +102,11 @@ class EmailMessage(object):
     def send(self):
         headers = {}
         if self.cc:
-            headers['Cc'] = self.cc
+            headers['Cc'] = ', '.join(self.cc)
         if self.bcc:
             headers['Bcc'] = self.bcc
         if self.reply_to:
-            headers['Reply-To'] = self.reply_to
+            headers['Reply-To'] = ', '.join(self.reply_to)
         msg = _EmailMessage(self.subject, self.body, self.sender,
                             self.to, self.bcc, headers=headers)
         msg.send(fail_silently=True)

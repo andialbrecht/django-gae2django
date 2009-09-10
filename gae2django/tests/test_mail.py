@@ -46,9 +46,9 @@ class MailFunctionsTest(TestCase):
         kw = {'cc' : ['cc@example.com'],
               'bcc' : ['bcc@example.com'],
               'reply_to' : ['reply@example.com']}
-        headers = {'Cc' : ['cc@example.com'],
+        headers = {'Cc' : 'cc@example.com',
                    'Bcc' : ['bcc@example.com'],
-                   'Reply-To' : ['reply@example.com']}
+                   'Reply-To' : 'reply@example.com'}
         mail.send_mail('foo@example.com', 'bar@example.com',
                        'Subject', 'Body', **kw)
         self.assertEqual(len(_mail.outbox), 1)
@@ -58,3 +58,41 @@ class MailFunctionsTest(TestCase):
         self.assertEqual(msg.subject, 'Subject')
         self.assertEqual(msg.body, 'Body')
         self.assertEqual(msg.extra_headers , headers)
+
+    def test_send_mail_cc(self):
+        kw = {'cc': 'cc@example.com'}
+        mail.send_mail('foo@example.com', 'bar@example.com',
+                       'Subject', 'Body', **kw)
+        self.assertEqual(len(_mail.outbox), 1)
+        msg = _mail.outbox[0]
+        self.assert_('Cc' in msg.extra_headers)
+        self.assertEqual(msg.extra_headers['Cc'], 'cc@example.com')
+
+    def test_send_mail_multi_cc(self):
+        kw = {'cc': ['cc1@example.com', 'cc2@example.com']}
+        mail.send_mail('foo@example.com', 'bar@example.com',
+                       'Subject', 'Body', **kw)
+        self.assertEqual(len(_mail.outbox), 1)
+        msg = _mail.outbox[0]
+        self.assert_('Cc' in msg.extra_headers)
+        self.assertEqual(msg.extra_headers['Cc'],
+                         'cc1@example.com, cc2@example.com')
+
+    def test_send_mail_reply_to(self):
+        kw = {'reply_to': 'other@example.com'}
+        mail.send_mail('foo@example.com', 'bar@example.com',
+                       'Subject', 'Body', **kw)
+        self.assertEqual(len(_mail.outbox), 1)
+        msg = _mail.outbox[0]
+        self.assert_('Reply-To' in msg.extra_headers)
+        self.assertEqual(msg.extra_headers['Reply-To'], 'other@example.com')
+
+    def test_send_mail_multi_reply_to(self):
+        kw = {'reply_to': ['other1@example.com', 'other2@example.com']}
+        mail.send_mail('foo@example.com', 'bar@example.com',
+                       'Subject', 'Body', **kw)
+        self.assertEqual(len(_mail.outbox), 1)
+        msg = _mail.outbox[0]
+        self.assert_('Reply-To' in msg.extra_headers)
+        self.assertEqual(msg.extra_headers['Reply-To'],
+                         'other1@example.com, other2@example.com')
