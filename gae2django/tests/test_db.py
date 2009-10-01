@@ -133,6 +133,12 @@ class TestQuery(unittest.TestCase):
         self.assert_(isinstance(item, TestModel))
         self.assertEqual(item.xstring, 'foo1')
 
+    def test_query_get_empy(self):  # issue 11
+        q = TestModel.all()
+        q = q.filter('xstring =', 'doesnotexist')
+        item = q.get()
+        self.assertEqual(item, None)
+
 
 class TestGqlQuery(unittest.TestCase):
 

@@ -58,7 +58,10 @@ class Query(QuerySet):
     def get(self, *args, **kwds):
         if kwds:
             return super(Query, self).get(*args, **kwds)
-        return list(self)[0]
+        results = list(self)
+        if results:
+            return results[0]
+        return None
 
     def ancestor(self, ancestor):
         raise NotImplementedError
