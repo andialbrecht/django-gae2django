@@ -20,6 +20,7 @@ from django.test.client import Client
 
 from gae2django.gaeapi.appengine.ext import db
 from gae2django.models import RegressionTestModel as TestModel
+from gae2django.models import RefTestModel as TestModel2
 
 
 class DatastoreModelTest(unittest.TestCase):
@@ -175,3 +176,16 @@ class TestUserProperty(unittest.TestCase):
         self.assert_(callable(obj.xuser.email))
         self.assert_(hasattr(obj.xuser, 'nickname'))
         self.assert_(callable(obj.xuser.nickname))
+
+
+class TestReferenceProperty(unittest.TestCase):
+
+    def test_protected_attr(self):
+        m = TestModel()
+        m2 = TestModel2()
+        m2.put()
+        m.ref = m2
+        m.put()
+        self.assert_(hasattr(m, '_ref'))
+        self.assert_(isinstance(m._ref, db.Key))
+        self.assertEqual(m._ref, m2.key())

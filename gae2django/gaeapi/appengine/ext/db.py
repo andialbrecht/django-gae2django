@@ -102,165 +102,6 @@ class BaseManager(manager.Manager):
         return Query(self.model)
 
 
-class BaseModelMeta(models.base.ModelBase):
-
-    def __new__(cls, name, bases, attrs):
-        new_cls = super(BaseModelMeta, cls).__new__(cls, name, bases, attrs)
-        new_cls.objects = BaseManager()
-        new_cls.objects.model = new_cls
-        new_cls._default_manager = new_cls.objects
-        return new_cls
-
-
-class Model(models.Model):
-
-    __metaclass__ = BaseModelMeta
-
-    gae_key = models.CharField(max_length=64, blank=True, null=True,
-                               unique=True)
-    gae_parent_ctype = models.ForeignKey(ContentType,
-                                         blank=True, null=True)
-    gae_parent_id = models.PositiveIntegerField(blank=True, null=True)
-    gae_ancestry = models.CharField(max_length=500, blank=True, null=True)
-    parent = generic.GenericForeignKey('gae_parent_ctype',
-                                       'gae_parent_id')
-
-    class Meta:
-        abstract = True
-
-    def __init__(self, *args, **kwds):
-        # keywords for GenericForeignKeys don't work with abstract classes:
-        # http://code.djangoproject.com/ticket/8309
-        if 'parent' in kwds:
-            parent = kwds['parent']
-            ctype = ContentType.objects.get_for_model(parent.__class__)
-            kwds['gae_parent_ctype'] = ctype
-            kwds['gae_parent_id'] = parent.id
-            kwds['gae_ancestry'] = ''.join(['@%s@' % prnt.key()
-                                            for prnt in parent.get_ancestry()])
-
-            del kwds['parent']
-        if 'key' in kwds:
-            kwds['gae_key'] = kwds['key']
-            del kwds['key']
-        if 'key_name' in kwds:
-            kwds['gae_key'] = kwds['key_name']
-            del kwds['key_name']
-        self._key = None
-        super(Model, self).__init__(*args, **kwds)
-
-    @classmethod
-    def get_or_insert(cls, key, **kwds):
-        try:
-            return cls.objects.get(gae_key=key)
-        except cls.DoesNotExist:
-            kwds['gae_key'] = key
-            new = cls(**kwds)
-            new.save()
-            return new
-
-    @classmethod
-    def get_by_key_name(cls, keys, parent=None):
-        if type(keys) not in [types.ListType, types.TupleType]:
-            keys = [keys]
-        result = []
-        for key in keys:
-            try:
-                kwds = {'gae_key': str(key)}
-                if parent is not None:
-                    kwds['gae_ancestry__icontains'] = str(parent.key())
-                result.append(cls.objects.get(**kwds))
-            except cls.DoesNotExist:
-                result.append(None)
-        if len(keys) == 1:
-            return result[0]
-        return result
-
-    @classmethod
-    def get_by_id(cls, id_, parent=None):
-        # Ignore parent, we've got an ID
-        ret = []
-        return_list = True
-        if type(id_) not in (types.ListType, types.TupleType):
-            id_ = [id_]
-            return_list = False
-        for i in id_:
-            try:
-                ret.append(cls.objects.get(id=i))
-            except cls.DoesNotExist:
-                ret.append(None)
-        if len(id_) == 1 and not return_list:
-            return ret[0]
-        else:
-            return ret
-
-    @classmethod
-    def kind(cls):
-        # Return the table name here. It should be the expected output...
-        return cls._meta.db_table
-
-    @classmethod
-    def all(cls):
-        return cls.objects.all()
-
-    @classmethod
-    def properties(cls):
-        props = {}
-        [props.setdefault(field.name, field) for field in cls._meta.fields
-         if not field.name.startswith('gae_')]
-        return props
-
-    def key(self):
-        if self._key is None:
-            self._key = Key('%s_%s' % (self.__class__.__name__, self.id))
-            self._key._obj = self
-        return self._key
-
-    def put(self):
-        return self.save()
-
-    def save(self):
-        if not self.key:
-            try:
-                pid = os.getpid()
-            except AttributeError:
-                pid = 1
-            self.key = md5_constructor("%s%s%s%s"
-                                       % (randrange(0, MAX_SESSION_KEY),
-                                          pid, time.time(),
-                                          self.__name__)).hexdigest()
-        super(Model, self).save()
-
-    @classmethod
-    def gql(cls, clause, *args, **kwds):
-        from google.appengine.ext import db
-        query = db.GqlQuery('SELECT * FROM %s %s' % (cls.__name__,
-                                                     clause), *args, **kwds)
-        query._real_cls = cls
-        return query
-
-    @classmethod
-    def get(cls, keys):
-        if type(keys) not in [types.ListType, types.TupleType]:
-            keys = [keys]
-        instances = [cls.get_by_key_name(key) for key in keys]
-        if len(keys) == 1:
-            return instances[0]
-        else:
-            return instances
-
-    def parent_key(self):
-        return self.parent.key()
-
-    def get_ancestry(self):
-        """Returns parent objects."""
-        yield self
-        parent = self.parent
-        while parent:
-            yield parent
-            parent = parent.parent
-
-
 def _adjust_keywords(kwds):
     required = kwds.get('required', False)
     kwds['null'] = not required
@@ -405,6 +246,9 @@ class ReferenceProperty(models.ForeignKey):
             target = self.rel.to._meta.db_table
         cls._meta.duplicate_targets[self.column] = (target, "o2m")
 
+SelfReferenceProperty = ReferenceProperty
+
+
 class BlobProperty(models.TextField):
 
     def __init__(self, *args, **kwds):
@@ -431,6 +275,181 @@ class IntegerProperty(models.IntegerField):
     def __init__(self, *args, **kwds):
         kwds = _adjust_keywords(kwds)
         super(IntegerProperty, self).__init__(*args, **kwds)
+
+
+class BaseModelMeta(models.base.ModelBase):
+
+    def __new__(cls, name, bases, attrs):
+        new_cls = super(BaseModelMeta, cls).__new__(cls, name, bases, attrs)
+        new_cls.objects = BaseManager()
+        new_cls.objects.model = new_cls
+        new_cls._default_manager = new_cls.objects
+        new_cls._reference_attrs = set()
+        for name in set(attrs):
+            value = attrs[name]
+            if isinstance(value, (ReferenceProperty, SelfReferenceProperty)):
+                new_cls._reference_attrs.add(name)
+        return new_cls
+
+
+class Model(models.Model):
+
+    __metaclass__ = BaseModelMeta
+
+    gae_key = models.CharField(max_length=64, blank=True, null=True,
+                               unique=True)
+    gae_parent_ctype = models.ForeignKey(ContentType,
+                                         blank=True, null=True)
+    gae_parent_id = models.PositiveIntegerField(blank=True, null=True)
+    gae_ancestry = models.CharField(max_length=500, blank=True, null=True)
+    parent = generic.GenericForeignKey('gae_parent_ctype',
+                                       'gae_parent_id')
+
+    class Meta:
+        abstract = True
+
+    def __init__(self, *args, **kwds):
+        # keywords for GenericForeignKeys don't work with abstract classes:
+        # http://code.djangoproject.com/ticket/8309
+        if 'parent' in kwds:
+            parent = kwds['parent']
+            ctype = ContentType.objects.get_for_model(parent.__class__)
+            kwds['gae_parent_ctype'] = ctype
+            kwds['gae_parent_id'] = parent.id
+            kwds['gae_ancestry'] = ''.join(['@%s@' % prnt.key()
+                                            for prnt in parent.get_ancestry()])
+
+            del kwds['parent']
+        if 'key' in kwds:
+            kwds['gae_key'] = kwds['key']
+            del kwds['key']
+        if 'key_name' in kwds:
+            kwds['gae_key'] = kwds['key_name']
+            del kwds['key_name']
+        self._key = None
+        super(Model, self).__init__(*args, **kwds)
+
+    def __getattribute__(self, name):
+        ref_attrs = super(Model, self).__getattribute__('_reference_attrs')
+        if name.startswith('_') and name[1:] in ref_attrs:
+            referenced = super(Model, self).__getattribute__(name[1:])
+            if referenced is not None:
+                return referenced.key()
+            return None
+        return super(Model, self).__getattribute__(name)
+
+    @classmethod
+    def get_or_insert(cls, key, **kwds):
+        try:
+            return cls.objects.get(gae_key=key)
+        except cls.DoesNotExist:
+            kwds['gae_key'] = key
+            new = cls(**kwds)
+            new.save()
+            return new
+
+    @classmethod
+    def get_by_key_name(cls, keys, parent=None):
+        if type(keys) not in [types.ListType, types.TupleType]:
+            keys = [keys]
+        result = []
+        for key in keys:
+            try:
+                kwds = {'gae_key': str(key)}
+                if parent is not None:
+                    kwds['gae_ancestry__icontains'] = str(parent.key())
+                result.append(cls.objects.get(**kwds))
+            except cls.DoesNotExist:
+                result.append(None)
+        if len(keys) == 1:
+            return result[0]
+        return result
+
+    @classmethod
+    def get_by_id(cls, id_, parent=None):
+        # Ignore parent, we've got an ID
+        ret = []
+        return_list = True
+        if type(id_) not in (types.ListType, types.TupleType):
+            id_ = [id_]
+            return_list = False
+        for i in id_:
+            try:
+                ret.append(cls.objects.get(id=i))
+            except cls.DoesNotExist:
+                ret.append(None)
+        if len(id_) == 1 and not return_list:
+            return ret[0]
+        else:
+            return ret
+
+    @classmethod
+    def kind(cls):
+        # Return the table name here. It should be the expected output...
+        return cls._meta.db_table
+
+    @classmethod
+    def all(cls):
+        return cls.objects.all()
+
+    @classmethod
+    def properties(cls):
+        props = {}
+        [props.setdefault(field.name, field) for field in cls._meta.fields
+         if not field.name.startswith('gae_')]
+        return props
+
+    def key(self):
+        if self._key is None:
+            self._key = Key('%s_%s' % (self.__class__.__name__, self.id))
+            self._key._obj = self
+        return self._key
+
+    def put(self):
+        return self.save()
+
+    def save(self):
+        if not self.key:
+            try:
+                pid = os.getpid()
+            except AttributeError:
+                pid = 1
+            self.key = md5_constructor("%s%s%s%s"
+                                       % (randrange(0, MAX_SESSION_KEY),
+                                          pid, time.time(),
+                                          self.__name__)).hexdigest()
+        super(Model, self).save()
+
+    @classmethod
+    def gql(cls, clause, *args, **kwds):
+        from google.appengine.ext import db
+        query = db.GqlQuery('SELECT * FROM %s %s' % (cls.__name__,
+                                                     clause), *args, **kwds)
+        query._real_cls = cls
+        return query
+
+    @classmethod
+    def get(cls, keys):
+        if type(keys) not in [types.ListType, types.TupleType]:
+            keys = [keys]
+        instances = [cls.get_by_key_name(key) for key in keys]
+        if len(keys) == 1:
+            return instances[0]
+        else:
+            return instances
+
+    def parent_key(self):
+        return self.parent.key()
+
+    def get_ancestry(self):
+        """Returns parent objects."""
+        yield self
+        parent = self.parent
+        while parent:
+            yield parent
+            parent = parent.parent
+
+
 
 from django import forms as djangoforms
 
