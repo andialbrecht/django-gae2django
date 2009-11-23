@@ -1,4 +1,5 @@
 import base64
+import binascii
 import cPickle
 import logging
 import os
@@ -254,6 +255,21 @@ class BlobProperty(models.TextField):
     def __init__(self, *args, **kwds):
         kwds = _adjust_keywords(kwds)
         super(BlobProperty, self).__init__(*args, **kwds)
+
+    def get_db_prep_value(self, value):
+        if value is None:
+            return value
+        return base64.encodestring(value)
+
+    def to_python(self, value):
+        if value is None:
+            return value
+        try:
+            return base64.decodestring(value)
+        except binascii.Error:
+            # value is already decoded, or for legacy data it was never encoded
+            return value
+        return value
 
 
 class LinkProperty(models.URLField):
