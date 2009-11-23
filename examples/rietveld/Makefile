@@ -1,4 +1,4 @@
-RIETVELDREV=439
+RIETVELDREV=493
 
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
@@ -18,7 +18,7 @@ clean_django:
 
 clean_local:
 	unlink gae2django
-	rm -f manage.py dev.db
+	rm -f dev.db
 
 gae2django:
 	ln -s ../../gae2django .

@@ -10,6 +10,6 @@ urlpatterns += patterns('',
          {'document_root': 'static/'}),
         (r'^accounts/login/$', 'django.contrib.auth.views.login'),
         (r'^accounts/logout/$', 'django.contrib.auth.views.logout_then_login'),
-        ('^admin/', include(admin.site.urls)),
+#        ('^admin/', include(admin.site.urls)),
         ('^_ah/admin', 'rietveld_helper.views.admin_redirect'),
     )
