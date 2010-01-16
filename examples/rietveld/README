@@ -56,6 +56,8 @@ Now set a few symbolic links to include the helper and Django by running
     ln -s ../../gae2django .
     ln -s ../../manage.py .
 
+Note: Rietveld requires Django 1.1!
+
 Finally run
 
     ./manage.py syncdb
