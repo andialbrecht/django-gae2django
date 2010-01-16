@@ -24,7 +24,7 @@ Index: static/upload.py
  
      old_timeout = socket.getdefaulttimeout()
      socket.setdefaulttimeout(timeout)
-@@ -368,9 +370,41 @@
+@@ -368,9 +370,42 @@
  class HttpRpcServer(AbstractRpcServer):
    """Provides a simplified RPC-style interface for HTTP requests."""
  
@@ -54,7 +54,8 @@ Index: static/upload.py
 +    except urllib2.HTTPError, e:
 +      if e.code == 302:
 +        self.cookie_jar.extract_cookies(e, req)
-+        self.cookie_jar.save()
++        if self.save_cookies:
++          self.cookie_jar.save()
 +        self.authenticated = True
 +        return
 +      elif e.code == 403:
