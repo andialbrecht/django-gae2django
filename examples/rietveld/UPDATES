@@ -24,3 +24,5 @@ Changes in Rietveld that require database updates
 r427: New column codereview_issue.private
 
   ALTER TABLE codereview_issue ADD private BOOLEAN DEFAULT false;
+
+r510: Change MEDIA_URL in settings from '' to '/static/'.
