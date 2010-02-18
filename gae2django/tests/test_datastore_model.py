@@ -76,6 +76,8 @@ class DatastoreModelTest(unittest.TestCase):
         item2.put()
         self.assertEqual(TestModel.get_by_key_name(['test1', 'test2']),
                          [item1, item2])
+        self.assertEqual(TestModel.get_by_key_name(['test1']),
+                         [item1])
         item1.delete()
         item2.delete()
 

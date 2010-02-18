@@ -366,7 +366,10 @@ class Model(models.Model):
 
     @classmethod
     def get_by_key_name(cls, keys, parent=None):
+        single = False
+        # if keys isn't a list then a single instance is returned
         if type(keys) not in [types.ListType, types.TupleType]:
+            single = True
             keys = [keys]
         result = []
         for key in keys:
@@ -377,9 +380,12 @@ class Model(models.Model):
                 result.append(cls.objects.get(**kwds))
             except cls.DoesNotExist:
                 result.append(None)
-        if len(keys) == 1:
+        if single and len(result) != 0:
             return result[0]
-        return result
+        elif single:
+            return None
+        else:
+            return result
 
     @classmethod
     def get_by_id(cls, id_, parent=None):
