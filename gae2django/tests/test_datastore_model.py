@@ -191,3 +191,16 @@ class TestReferenceProperty(unittest.TestCase):
         self.assert_(hasattr(m, '_ref'))
         self.assert_(isinstance(m._ref, db.Key))
         self.assertEqual(m._ref, m2.key())
+
+
+class TestBlobProperty(unittest.TestCase):
+
+    def test_blobproperty_save_restore(self):
+        obj = TestModel()
+        obj.blob = db.Blob("test")
+        obj.save()
+        tobj = TestModel.get_by_id(obj.key().id())
+        self.assertEqual(tobj, obj)
+        self.assertEqual(obj.blob, "test")
+        self.assertEqual(tobj.blob, "test")
+        self.assert_(isinstance(tobj.blob, db.Blob))
