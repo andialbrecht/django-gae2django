@@ -20,14 +20,17 @@ class TestGQL(unittest.TestCase):
         obj.save()
         query = db.GqlQuery(('SELECT * FROM RegressionTestModel'
                              ' WHERE xlist = :1'), 'foo')
+        self.assertEqual([obj], list(query))
         self.assertEqual(query.count(), 1)
         tobj = query.get()
         self.assertEqual(tobj.xlist, ['foo', 'bar', 'baz'])
         query = db.GqlQuery(('SELECT * FROM RegressionTestModel'
                              ' WHERE xlist = :1'), 'nomatch')
+        self.assertEqual([], list(query))
         self.assertEqual(query.count(), 0)
         tobj.xlist = ['bar', 'baz']
         tobj.save()
         query = db.GqlQuery(('SELECT * FROM RegressionTestModel'
                              ' WHERE xlist = :1'), 'foo')
+        self.assertEqual([], list(query))
         self.assertEqual(query.count(), 0)

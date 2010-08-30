@@ -491,7 +491,7 @@ class _QueryIterator(object):
 
     def next(self):
         self._idx += 1
-        if self._results.count() > self._idx:
+        if len(self._results) > self._idx:
             return self._results[self._idx]
         else:
             raise StopIteration
@@ -640,7 +640,7 @@ class GqlQuery(object):
         if self._results is None:
             self._execute()
         idx = self._idx
-        c = len(list(self._results))
+        c = len(self._results)
         self._idx = idx
         return c
 
