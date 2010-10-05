@@ -1,8 +1,6 @@
-Index: static/upload.py
-===================================================================
---- static/upload.py	(Revision 510)
-+++ static/upload.py	(Arbeitskopie)
-@@ -264,7 +264,7 @@
+--- upload.py.orig	2010-09-30 09:57:13.552607000 +0200
++++ upload.py	2010-10-05 14:34:19.193893001 +0200
+@@ -285,7 +285,7 @@
                                response.headers, response.fp)
      self.authenticated = True
  
@@ -11,7 +9,7 @@ Index: static/upload.py
      """Authenticates the user.
  
      The authentication process works as follows:
-@@ -335,8 +335,10 @@
+@@ -362,8 +362,10 @@
      """
      # TODO: Don't require authentication.  Let the server say
      # whether it is necessary.
@@ -24,7 +22,7 @@ Index: static/upload.py
  
      old_timeout = socket.getdefaulttimeout()
      socket.setdefaulttimeout(timeout)
-@@ -372,9 +374,42 @@
+@@ -402,9 +404,42 @@
  class HttpRpcServer(AbstractRpcServer):
    """Provides a simplified RPC-style interface for HTTP requests."""
  

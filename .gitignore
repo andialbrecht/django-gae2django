@@ -6,4 +6,5 @@ examples/rietveld/django
 examples/rietveld/gae2django
 examples/rietveld/dev.db
 examples/rietveld/templates/
+examples/rietveld/upload.py
 examples/rietveld/debug_toolbar
