@@ -269,10 +269,14 @@ class BlobProperty(models.TextField):
             return value
         if isinstance(value, Blob):
             return value
+        elif isinstance(value, unicode):
+            # For legacy data
+            value = value.encode('utf-8')
         try:
             return Blob(base64.decodestring(value))
         except binascii.Error:
-            # value is already decoded, or for legacy data it was never encoded
+            # value is already decoded, or for legacy data it was
+            # never encoded
             return Blob(value)
 
 
