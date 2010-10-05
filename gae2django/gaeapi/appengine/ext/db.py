@@ -553,6 +553,7 @@ class GqlQuery(object):
         if not cls:
             raise Error('Class not found.')
         q = cls.objects.all()
+        q = q.select_related()
         #print '-'*10
         #print "xx", sql, self._args, self._kwds
         ancestor = None
