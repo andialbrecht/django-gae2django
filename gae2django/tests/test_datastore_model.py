@@ -96,6 +96,16 @@ class DatastoreModelTest(unittest.TestCase):
         self.assert_(item1 in TestModel.all())
         item1.delete()
 
+    def test_ancestor(self):
+        grandpa = TestModel.get_or_insert('grandpa')
+        dad = TestModel.get_or_insert('dad', parent=grandpa)
+        TestModel.get_or_insert('junior', parent=dad)
+        TestModel.get_or_insert('unrelated')
+        q = TestModel.all()
+        q = q.ancestor(grandpa)
+        self.assertEqual(len(q), 2)
+        self.assertEqual(len(TestModel.all().ancestor(dad)), 1)
+
     def test_gql(self):
         item1 = TestModel.get_or_insert('test1', xstring='foo')
         item2 = TestModel.get_or_insert('test2', xstring='foo')
