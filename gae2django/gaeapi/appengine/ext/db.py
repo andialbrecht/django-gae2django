@@ -166,12 +166,15 @@ def patch_user_model(sender, **kwds):
         instance.email = CallableString(instance.email)
     if not hasattr(instance, 'nickname'):
         nickname = CallableString()
-        try:
-            profile = instance.get_profile()
-            if hasattr(profile, 'nickname'):
-                nickname = CallableString(profile.nickname)
-        except:
-            pass
+        # TODO(andi): Commented since it's a performance killer.
+        #  All tests pass and at least Rietveld seems to run fine.
+        #  I'll leave it in the sources in case it comes up again...
+#        try:
+#            profile = instance.get_profile()
+#            if hasattr(profile, 'nickname'):
+#                nickname = CallableString(profile.nickname)
+#        except:
+#            pass
         instance.nickname = nickname
 
 post_init.connect(patch_user_model)
