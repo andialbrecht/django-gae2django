@@ -599,6 +599,8 @@ class GqlQuery(object):
                     if isinstance(cls._meta.get_field(kwd), ListProperty):
                         listprop_filter.append((kwd, item))
                         continue
+                    if isinstance(kwd, unicode):
+                        kwd = kwd.encode('ascii')
                     q = q._filter(**{kwd: item})
             elif op == 'is' and kwd == -1: # ANCESTOR
                 if ancestor:
