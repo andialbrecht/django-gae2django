@@ -16,6 +16,7 @@ from django.db.models import manager
 from django.db.models.fields.related import (
     ReverseSingleRelatedObjectDescriptor as RSROD)
 from django.db.models.query import QuerySet
+from django.db.models.query_utils import Q
 from django.db.models.signals import post_init
 from django.db import transaction
 from django.utils.hashcompat import md5_constructor
@@ -43,11 +44,25 @@ class Query(QuerySet):
             return super(Query, self).filter(*args, **kwds)
         property_operator, value = args
         if isinstance(value, basestring):
-            where = u'%s \'%s\'' % (property_operator,
-                                    value.replace("'", "''"))
+            value = u'%s' % value
+            value = value.replace("'", "''")
+        elif isinstance(value, Key):
+            value = value.obj
+        prop, op = property_operator.split(' ', 1)
+        # TODO(andi): See GqlQuery. Refactor query building.
+        if op.lower() in ('=', 'is'):
+            self.query.add_q(Q(**{prop: value}))
+        elif op == '>':
+            self.query.add_q(Q(**{'%s__gt' % prop: value}))
+        elif op == '<':
+            self.query.add_q(Q(**{'%s__lt' % prop: value}))
+        elif op == '>=':
+            self.query.add_q(Q(**{'%s__gte' % prop: value}))
+        elif op == '<=':
+            self.query.add_q(Q(**{'%s__lte' % prop: value}))
         else:
             where = '%s %r' % (property_operator, value)
-        self.query.add_extra(None, None, [where], None, None, None)
+            self.query.add_extra(None, None, [where], None, None, None)
         return self
 
     def _filter(self, *args, **kwds):
