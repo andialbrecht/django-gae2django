@@ -82,8 +82,7 @@ class Query(QuerySet):
     def ancestor(self, ancestor):
         pattern = '@@'.join(str(x.key()) for x in ancestor.get_ancestry())
         # TODO(andi): __startswith would be better, see issue21
-        return super(Query, self).filter(
-            gae_ancestry__endswith='@%s@' % pattern)
+        self.query.add_q(Q(gae_ancestry__endswith='@%s@' % pattern))
 
     def fetch(self, limit, offset=0):
         return list(self)[offset:limit]
