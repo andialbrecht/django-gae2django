@@ -243,7 +243,7 @@ class G2DReverseSingleRelatedObjectDescriptor(RSROD):
         return self._attr_name()
 
     def _attr_name(self):
-        return self.field.name
+        return "_%s" % self.field.name
 
 
 class ReferenceProperty(models.ForeignKey):

@@ -204,6 +204,16 @@ class TestReferenceProperty(unittest.TestCase):
         self.assert_(isinstance(m._ref, db.Key))
         self.assertEqual(m._ref, m2.key())
 
+    def test_get_value_for_datastore(self):
+        m = TestModel()
+        m2 = TestModel2()
+        m2.put()
+        m.ref = m2
+        m.put()
+        self.assert_(isinstance(TestModel.ref.get_value_for_datastore(m),
+                                db.Key))
+        self.assertEqual(TestModel.ref.get_value_for_datastore(m), m2.key())
+
 
 class TestBlobProperty(unittest.TestCase):
 
