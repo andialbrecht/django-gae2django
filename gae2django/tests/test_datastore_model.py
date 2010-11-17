@@ -142,6 +142,14 @@ class DatastoreModelTest(unittest.TestCase):
                          ('Multiple calls to Model.key() returned different'
                           ' objects: %s %s.' % (id(key1), id(key2))))
 
+    def test_key_item_saved(self):
+        # make sure that an instance of this model is saved at least
+        # once before retrieving the key
+        item = TestModel()
+        self.assertRaises(db.NotSavedError, item.key)
+        item.put()
+        item.key()
+
 
 class TestListProperty(unittest.TestCase):
 

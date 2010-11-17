@@ -450,6 +450,8 @@ class Model(models.Model):
         return props
 
     def key(self):
+        if self.id is None:
+            raise NotSavedError()
         if self._key is None:
             self._key = Key('%s_%s' % (self.__class__.__name__, self.id))
             self._key._obj = self
