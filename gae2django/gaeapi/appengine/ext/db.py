@@ -457,6 +457,9 @@ class Model(models.Model):
             self._key._obj = self
         return self._key
 
+    def is_saved(self):
+        return self.id is not None
+
     def put(self):
         return self.save()
 

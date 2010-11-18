@@ -150,6 +150,12 @@ class DatastoreModelTest(unittest.TestCase):
         item.put()
         item.key()
 
+    def test_is_saved(self):
+        item = TestModel()
+        self.assertFalse(item.is_saved())
+        item.put()
+        self.assertTrue(item.is_saved())
+
 
 class TestListProperty(unittest.TestCase):
 
