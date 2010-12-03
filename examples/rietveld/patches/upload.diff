@@ -22,7 +22,7 @@
  
      old_timeout = socket.getdefaulttimeout()
      socket.setdefaulttimeout(timeout)
-@@ -402,9 +404,42 @@
+@@ -402,9 +404,45 @@
  class HttpRpcServer(AbstractRpcServer):
    """Provides a simplified RPC-style interface for HTTP requests."""
  
@@ -30,7 +30,10 @@
 +  def _Authenticate(self, login_url="/accounts/login/"):
      """Save the cookie jar after authentication."""
 -    super(HttpRpcServer, self)._Authenticate()
-+    login_url = "http://%s%s" % (self.host, login_url)
++    if (not self.host.startswith("http://") and
++        not self.host.startswith("https://")):
++      self.host = "http://" + self.host
++    login_url = "%s%s" % (self.host, login_url)
 +    print "Login URL: %r" % login_url
 +    username = raw_input("Username: ")
 +    password = getpass.getpass("Password: ")
