@@ -71,6 +71,7 @@ MIDDLEWARE_CLASSES = (
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.core.context_processors.auth',    # required by admin panel
     'django.core.context_processors.request',
 )
 
