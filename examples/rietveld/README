@@ -50,15 +50,15 @@ your PYTHONPATH
 
 Note: Rietveld requires Django 1.1!
 
-    svn co http://code.djangoproject.com/svn/django/tags/releases/1.1.2/django django 
+    svn co http://code.djangoproject.com/svn/django/tags/releases/1.1.3/django django 
     svn co http://django-gae2django.googlecode.com/svn/trunk/gae2django 
 
 Then check out Rietveld by running
 
-     svn co http://rietveld.googlecode.com/svn/trunk/codereview
-     svn co http://rietveld.googlecode.com/svn/trunk/static
-     svn co http://rietveld.googlecode.com/svn/trunk/templates
-     svn export http://rietveld.googlecode.com/svn/trunk/upload.py
+    svn co http://rietveld.googlecode.com/svn/trunk/codereview
+    svn co http://rietveld.googlecode.com/svn/trunk/static
+    svn co http://rietveld.googlecode.com/svn/trunk/templates
+    svn export http://rietveld.googlecode.com/svn/trunk/upload.py
 
 
 Then modify your checked out version of Rietveld by applying all patches
@@ -71,3 +71,33 @@ Finally run
     ./manage.py syncdb
 
 to initialize the example database.
+
+    ./manage.py runserver 127.0.0.1:8000
+
+will run Rietveld in development mode.
+
+
+Production Deployment
+=====================
+
+The preferred method to deploy Django applications is to use WSGI supporting
+web server. You may copy codereview.wsgi.example and edit it to change
+/var/rietveld path to point to your installation.
+
+There is one important thing to remember. Django serves media (static) files
+only in development mode. For running Rietveld in a production environment,
+you need to setup your web-server to serve the /static/ alias directly.
+
+http://docs.djangoproject.com/en/dev/howto/deployment/modpython/#serving-media-files
+
+There is the example configuration for running Rietveld with Apache2+mod_wsgi
+Feel free to copy it from apache.conf.example. You may need to change
+'codereview' user name in WSGI directives and adjust paths to match your
+installation.
+
+
+Adding Users
+============
+
+Go to /admin URL and login as a super user. Users may change password by
+going to /admin/password_change URL.
