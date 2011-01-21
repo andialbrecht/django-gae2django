@@ -62,9 +62,10 @@ Then check out Rietveld by running
 
 
 Then modify your checked out version of Rietveld by applying all patches
-in the patches directory (so far there is only one).
+in the patches directory.
 
     patch -p0 < patches/upload.diff
+    patch -p0 < patches/account-login-links.diff
     
 Finally run
 
