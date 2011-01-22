@@ -1,4 +1,4 @@
-RIETVELDREV=582
+RIETVELDREV=650
 
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
@@ -35,6 +35,8 @@ static: upload.py
 upload.py:
 	svn export http://rietveld.googlecode.com/svn/trunk/upload.py@$(RIETVELDREV)
 	patch -p0 < patches/upload.diff
+	patch -p0 < patches/account-login-links.diff
+	patch -p0 < patches/download.link.diff
 
 templates:
 	svn co http://rietveld.googlecode.com/svn/trunk/templates@$(RIETVELDREV)

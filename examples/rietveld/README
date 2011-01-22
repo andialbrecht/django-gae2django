@@ -66,7 +66,8 @@ in the patches directory.
 
     patch -p0 < patches/upload.diff
     patch -p0 < patches/account-login-links.diff
-    
+    patch -p0 < patches/download.link.diff
+
 Finally run
 
     ./manage.py syncdb
