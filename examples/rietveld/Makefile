@@ -28,6 +28,7 @@ dev.db:
 
 codereview:
 	svn co http://rietveld.googlecode.com/svn/trunk/codereview@$(RIETVELDREV)
+	patch -p0 < patches/download.link.diff
 
 static: upload.py
 	svn co http://rietveld.googlecode.com/svn/trunk/static@$(RIETVELDREV)
@@ -35,11 +36,10 @@ static: upload.py
 upload.py:
 	svn export http://rietveld.googlecode.com/svn/trunk/upload.py@$(RIETVELDREV)
 	patch -p0 < patches/upload.diff
-	patch -p0 < patches/account-login-links.diff
-	patch -p0 < patches/download.link.diff
 
 templates:
 	svn co http://rietveld.googlecode.com/svn/trunk/templates@$(RIETVELDREV)
+	patch -p0 < patches/account-login-links.diff
 
 django:
 	ln -s ../../django .
