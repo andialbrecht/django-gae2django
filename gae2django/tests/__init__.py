@@ -33,7 +33,6 @@ import types
 import unittest
 
 from django.conf import settings
-from django.test.simple import run_tests as django_test_runner
 
 
 TEST_RE = r"^test_.*.py$"
@@ -66,6 +65,8 @@ __all__ = test_names
 
 def test_runner_with_coverage(test_labels, verbosity=1, interactive=True,
                               extra_tests=[]):
+    # This doesn't work with Django 1.4
+    from django.test.simple import run_tests as django_test_runner
     import coverage
 
     coverage.use_cache(0)

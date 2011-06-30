@@ -212,7 +212,7 @@ class ListProperty(models.TextField):
         kwds = _adjust_keywords(kwds)
         super(models.TextField, self).__init__()
 
-    def get_db_prep_value(self, value):
+    def get_db_prep_value(self, value, connection=None, prepared=False):
         return base64.encodestring(cPickle.dumps(value))
 
     def to_python(self, value):
@@ -279,7 +279,7 @@ class BlobProperty(models.TextField):
         kwds = _adjust_keywords(kwds)
         super(BlobProperty, self).__init__(*args, **kwds)
 
-    def get_db_prep_value(self, value):
+    def get_db_prep_value(self, value, connection=None, prepared=False):
         if value is None:
             return value
         return base64.encodestring(value)
