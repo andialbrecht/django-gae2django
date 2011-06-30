@@ -67,6 +67,14 @@ class MailFunctionsTest(TestCase):
         msg = _mail.outbox[0]
         self.assert_('Cc' in msg.extra_headers)
         self.assertEqual(msg.extra_headers['Cc'], 'cc@example.com')
+        msg_str = msg.message().as_string()
+        found = False
+        for line in msg_str.splitlines():
+            if line == 'Cc: cc@example.com':
+                found = True
+                break
+        if not found:
+            raise AssertionError('Cc header not found in message.')
 
     def test_send_mail_multi_cc(self):
         kw = {'cc': ['cc1@example.com', 'cc2@example.com']}
