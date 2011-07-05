@@ -47,7 +47,6 @@ class MailFunctionsTest(TestCase):
               'bcc' : ['bcc@example.com'],
               'reply_to' : ['reply@example.com']}
         headers = {'Cc' : 'cc@example.com',
-                   'Bcc' : ['bcc@example.com'],
                    'Reply-To' : 'reply@example.com'}
         mail.send_mail('foo@example.com', 'bar@example.com',
                        'Subject', 'Body', **kw)
