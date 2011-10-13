@@ -30,3 +30,11 @@ r510: Change MEDIA_URL in settings from '' to '/static/'.
 r582:
 
   ALTER TABLE codereview_bucket ADD quoted BOOLEAN DEFAULT false;
+
+840f9bb917ba:
+
+  alter table codereview_issue add repo_guid text;
+
+8b64d0fd49cd:
+
+  Add in settings.py: RIETVELD_REVISION='your version number'
