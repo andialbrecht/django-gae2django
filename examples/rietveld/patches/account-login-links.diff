@@ -1,22 +1,7 @@
-Index: templates/issue_base.html
-===================================================================
---- templates/issue_base.html	(revision 647)
-+++ templates/issue_base.html	(working copy)
-@@ -28,8 +28,7 @@
-     <a class="novisit" href="{%url codereview.views.index%}?closed=1">All Issues</a>
-     |
-     <a class="novisit" href="{{sign_in}}">Sign in</a>
--    with your <a href="https://www.google.com/accounts/NewAccount">Google
--    Account</a> to create issues and add comments
-+    to create issues and add comments
-   {%endif%}
- {%endblock%}
- 
-Index: templates/base.html
-===================================================================
---- templates/base.html	(revision 647)
-+++ templates/base.html	(working copy)
-@@ -168,10 +168,14 @@
+diff -r 0fb0ae2b1ce9 templates/base.html
+--- a/templates/base.html	Tue Oct 11 05:41:37 2011 +0200
++++ b/templates/base.html	Fri Oct 14 08:58:33 2011 +0200
+@@ -172,10 +172,14 @@
  <a class="novisit" href="{%url codereview.views.settings%}">Settings</a>
  |
  {%endif%}
@@ -32,3 +17,16 @@ Index: templates/base.html
  <a class="novisit" target="_blank"
     href="http://code.google.com/p/rietveld/wiki/CodeReviewHelp">Help</a>
  |
+diff -r 0fb0ae2b1ce9 templates/issue_base.html
+--- a/templates/issue_base.html	Tue Oct 11 05:41:37 2011 +0200
++++ b/templates/issue_base.html	Fri Oct 14 08:58:33 2011 +0200
+@@ -28,8 +28,7 @@
+     <a class="novisit" href="{%url codereview.views.index%}?closed=1">All Issues</a>
+     |
+     <a class="novisit" href="{{sign_in}}">Sign in</a>
+-    with your <a href="https://www.google.com/accounts/NewAccount">Google
+-    Account</a> to create issues and add comments
++    to create issues and add comments
+   {%endif%}
+ {%endblock%}
+ 

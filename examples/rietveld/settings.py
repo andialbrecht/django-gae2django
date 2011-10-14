@@ -101,4 +101,6 @@ LOGIN_REDIRECT_URL = '/'
 # This won't work with gae2django.
 RIETVELD_INCOMING_MAIL_ADDRESS = None
 
+RIETVELD_REVISION = ''
+
 UPLOAD_PY_SOURCE = os.path.join(os.path.dirname(__file__), 'upload.py')

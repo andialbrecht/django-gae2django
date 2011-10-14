@@ -1,4 +1,4 @@
-RIETVELDREV=f51cb906c4ad
+RIETVELDREV=0fb0ae2b1ce9
 
 default:
 	@echo "Run 'make all' to fetch required sources to run this example."
@@ -32,7 +32,7 @@ rietveld.hg:
 
 codereview: rietveld.hg
 	ln -s rietveld.hg/codereview .
-	patch -p0 < patches/download.link.diff
+	patch -p1 < patches/download.link.diff
 
 static: rietveld.hg upload.py
 	ln -s rietveld.hg/static .
@@ -43,4 +43,4 @@ upload.py: rietveld.hg
 
 templates: rietveld.hg
 	ln -s rietveld.hg/templates .
-	patch -p0 < patches/account-login-links.diff
+	patch -p1 < patches/account-login-links.diff
