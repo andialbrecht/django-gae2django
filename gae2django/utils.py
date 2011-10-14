@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import new
+
 
 class CallableString(unicode):
     """Helper class providing a callable unicode string.
@@ -31,3 +33,24 @@ class CallableString(unicode):
             return int(self.split('_')[-1])
         except:
             return None
+
+
+def patch_user(user):
+    """Patches a instance of Django's builtin User model."""
+    if not isinstance(user.email, CallableString):
+        user.email = CallableString(user.email)
+    if not hasattr(user, 'nickname'):
+        nickname = CallableString()
+        # TODO(andi): Commented since it's a performance killer.
+        #  All tests pass and at least Rietveld seems to run fine.
+        #  I'll leave it in the sources in case it comes up again...
+#        try:
+#            profile = user.get_profile()
+#            if hasattr(profile, 'nickname'):
+#                nickname = CallableString(profile.nickname)
+#        except:
+#            pass
+        user.nickname = nickname
+    if not hasattr(user, 'user_id'):
+        user.user_id = new.instancemethod(lambda u: u.id,
+                                          user, user.__class__)

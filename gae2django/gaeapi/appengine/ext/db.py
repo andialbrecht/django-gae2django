@@ -22,7 +22,7 @@ from django.db import transaction
 from django.utils.hashcompat import md5_constructor
 
 from gae2django.middleware import get_current_user
-from gae2django.utils import CallableString
+from gae2django.utils import CallableString, patch_user
 
 # Use the system (hardware-based) random number generator if it exists.
 # Taken from django.contrib.sessions.backends.base
@@ -179,20 +179,7 @@ def patch_user_model(sender, **kwds):
     if not 'instance' in kwds:  # just to go for sure, shouldn't happen
         return
     instance = kwds['instance']
-    if not isinstance(instance.email, CallableString):
-        instance.email = CallableString(instance.email)
-    if not hasattr(instance, 'nickname'):
-        nickname = CallableString()
-        # TODO(andi): Commented since it's a performance killer.
-        #  All tests pass and at least Rietveld seems to run fine.
-        #  I'll leave it in the sources in case it comes up again...
-#        try:
-#            profile = instance.get_profile()
-#            if hasattr(profile, 'nickname'):
-#                nickname = CallableString(profile.nickname)
-#        except:
-#            pass
-        instance.nickname = nickname
+    patch_user(instance)
 
 post_init.connect(patch_user_model)
 

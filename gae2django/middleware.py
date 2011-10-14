@@ -17,7 +17,7 @@ import threading
 
 from django.conf import settings
 
-from gae2django.utils import CallableString
+from gae2django.utils import CallableString, patch_user
 
 _thread_locals = threading.local()
 
@@ -40,10 +40,9 @@ class FixRequestUserMiddleware(object):
         if getattr(request, 'user', None) is None:
             return
         if not request.user.is_anonymous():
-            request.user.email = CallableString(request.user.email)
-            request.user.nickname = CallableString(request.user.username)
+            patch_user(request.user)
             try:
-                profile = user.get_profile()
+                profile = request.user.get_profile()
                 if hasattr(profile, 'nickname'):
                     request.user.nickname = CallableString(profile.nickname)
             except:

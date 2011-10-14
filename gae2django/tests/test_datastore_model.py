@@ -204,6 +204,9 @@ class TestUserProperty(unittest.TestCase):
         self.assert_(callable(obj.xuser.email))
         self.assert_(hasattr(obj.xuser, 'nickname'))
         self.assert_(callable(obj.xuser.nickname))
+        self.assert_(hasattr(obj.xuser, 'user_id'))
+        self.assert_(callable(obj.xuser.user_id))
+        self.assertEqual(obj.xuser.user_id(), obj.xuser.id)
 
 
 class TestReferenceProperty(unittest.TestCase):
