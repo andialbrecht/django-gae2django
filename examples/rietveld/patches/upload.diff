@@ -1,5 +1,5 @@
---- rietveld.hg/upload.py	2011-10-14 08:30:15.091978892 +0200
-+++ upload.py	2011-10-14 08:30:15.111978785 +0200
+--- upload.py	2011-11-23 08:22:31.946714363 +0100
++++ ../upload.py	2011-11-23 08:23:26.410984436 +0100
 @@ -289,7 +289,7 @@
                                response.headers, response.fp)
      self.authenticated = True
@@ -22,7 +22,7 @@
  
      old_timeout = socket.getdefaulttimeout()
      socket.setdefaulttimeout(timeout)
-@@ -416,9 +418,42 @@
+@@ -415,9 +417,42 @@
  class HttpRpcServer(AbstractRpcServer):
    """Provides a simplified RPC-style interface for HTTP requests."""
  
