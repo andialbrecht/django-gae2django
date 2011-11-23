@@ -8,3 +8,6 @@ examples/rietveld/static/
 examples/rietveld/templates/
 examples/rietveld/upload.py
 examples/rietveld/rietveld.hg
+
+# ignore local copies of django
+django/
