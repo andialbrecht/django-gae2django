@@ -107,6 +107,13 @@ class DatastoreModelTest(unittest.TestCase):
         q2 = TestModel.all()
         q2.ancestor(dad)
         self.assertEqual(len(q2), 1)
+        # ancestor() accepts keys too
+        q = TestModel.all()
+        q.ancestor(grandpa.key())
+        self.assertEqual(len(q), 2)
+        q2 = TestModel.all()
+        q2.ancestor(dad.key())
+        self.assertEqual(len(q2), 1)
 
     def test_gql(self):
         item1 = TestModel.get_or_insert('test1', xstring='foo')

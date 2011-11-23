@@ -70,6 +70,7 @@ class Query(QuerySet):
 
     def order(self, prop):
         self.query.add_ordering(prop)
+        return self
 
     def get(self, *args, **kwds):
         if kwds:
@@ -80,9 +81,17 @@ class Query(QuerySet):
         return None
 
     def ancestor(self, ancestor):
+        if isinstance(ancestor, Key):
+            # This isn't very efficient because we need to run an
+            # extra query to fetch the object. Maybe this could be
+            # refactored to work on keys only (instead of objects),
+            # but Key.parent() fetches an object too, so it makes no
+            # difference ATM.
+            ancestor = ancestor.obj
         pattern = '@@'.join(str(x.key()) for x in ancestor.get_ancestry())
         # TODO(andi): __startswith would be better, see issue21
         self.query.add_q(Q(gae_ancestry__endswith='@%s@' % pattern))
+        return self
 
     def fetch(self, limit, offset=0):
         return list(self)[offset:limit]
