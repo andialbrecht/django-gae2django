@@ -31,9 +31,13 @@ r582:
 
   ALTER TABLE codereview_bucket ADD quoted BOOLEAN DEFAULT false;
 
+59805f019927:
+
+  ALTER TABLE codereview_patchset DROP owner_id;
+
 840f9bb917ba:
 
-  alter table codereview_issue add repo_guid text;
+  ALTER TABLE codereview_issue ADD repo_guid text;
 
 8b64d0fd49cd:
 
