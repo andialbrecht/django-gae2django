@@ -42,3 +42,9 @@ class QueryTest(unittest.TestCase):
         res = list(q.fetch(1000))
         self.assertEqual(len(res), 1)
         self.assertEqual(str(res[0].key()), str(i2.key()))
+
+    def test_key_only(self):
+        q = TestModel.all(keys_only=True)
+        res = q.fetch(1000)
+        self.assertEqual(len(res), 1)
+        self.assertEqual(res[0], self.item1.id)

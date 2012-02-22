@@ -38,6 +38,7 @@ class Query(QuerySet):
     def __init__(self, *args, **kwds):
         super(Query, self).__init__(*args, **kwds)
         self._listprop_filter = None
+        self.keys_only = False
 
     def filter(self, *args, **kwds):
         if kwds:
@@ -48,7 +49,7 @@ class Query(QuerySet):
             value = value.replace("'", "''")
         elif isinstance(value, Key):
             value = value.obj
-        prop, op = property_operator.split(' ', 1)
+        prop, op = property_operator.strip().split(' ', 1)
         # TODO(andi): See GqlQuery. Refactor query building.
         if op.lower() in ('=', 'is'):
             self.query.add_q(Q(**{prop: value}))
@@ -69,6 +70,8 @@ class Query(QuerySet):
         return super(Query, self).filter(*args, **kwds)
 
     def order(self, prop):
+        if prop == '__key__':
+            prop = 'id'
         self.query.add_ordering(prop)
         return self
 
@@ -106,9 +109,18 @@ class Query(QuerySet):
                         matched = False
                         break
                 if matched:
-                    yield obj
+                    if self.keys_only:
+                        yield obj.pk
+                    else:
+                        yield obj
             else:
-                yield obj
+                if self.keys_only:
+                    yield obj.pk
+                else:
+                    yield obj
+
+    def cursor(self):
+        return base64.b64encode(cPickle.dumps(self))
 
 
 class BaseManager(manager.Manager):
@@ -435,8 +447,10 @@ class Model(models.Model):
         return cls._meta.db_table
 
     @classmethod
-    def all(cls):
-        return cls.objects.all()
+    def all(cls, keys_only=False):
+        q = cls.objects.all()
+        q.keys_only = keys_only
+        return q
 
     @classmethod
     def properties(cls):
