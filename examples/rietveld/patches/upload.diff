@@ -1,5 +1,5 @@
---- upload.py	2011-11-23 08:22:31.946714363 +0100
-+++ ../upload.py	2011-11-23 08:23:26.410984436 +0100
+--- rietveld.hg/upload.py	2012-02-22 18:50:42.877304344 +0100
++++ upload.py	2012-02-22 18:54:14.086351677 +0100
 @@ -289,7 +289,7 @@
                                response.headers, response.fp)
      self.authenticated = True
@@ -67,3 +67,27 @@
      if self.save_cookies:
        StatusUpdate("Saving authentication cookies to %s" % self.cookie_file)
        self.cookie_jar.save()
+@@ -618,23 +653,7 @@
+ 
+   rpc_server_class = HttpRpcServer
+ 
+-  # If this is the dev_appserver, use fake authentication.
+   host = (host_override or server).lower()
+-  if re.match(r'(http://)?localhost([:/]|$)', host):
+-    if email is None:
+-      email = "test@example.com"
+-      logging.info("Using debug user %s.  Override with --email" % email)
+-    server = rpc_server_class(
+-        server,
+-        lambda: (email, "password"),
+-        host_override=host_override,
+-        extra_headers={"Cookie":
+-                       'dev_appserver_login="%s:False"' % email},
+-        save_cookies=save_cookies,
+-        account_type=account_type)
+-    # Don't try to talk to ClientLogin.
+-    server.authenticated = True
+-    return server
+ 
+   def GetUserCredentials():
+     """Prompts the user for a username and password."""
