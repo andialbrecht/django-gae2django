@@ -276,7 +276,9 @@ class ReferenceProperty(models.ForeignKey):
             target = self.rel.to._meta.db_table
         cls._meta.duplicate_targets[self.column] = (target, "o2m")
 
-SelfReferenceProperty = ReferenceProperty
+class SelfReferenceProperty(ReferenceProperty):
+    def __init__(self, *args, **kwds):
+        super(SelfReferenceProperty, self).__init__('self', *args, **kwds)
 
 
 class BlobProperty(models.TextField):
