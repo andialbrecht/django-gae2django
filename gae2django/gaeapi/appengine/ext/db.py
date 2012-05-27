@@ -13,6 +13,7 @@ from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models import manager
+from django.db.models.fields import FieldDoesNotExist
 from django.db.models.fields.related import (
     ReverseSingleRelatedObjectDescriptor as RSROD)
 from django.db.models.query import QuerySet
@@ -344,6 +345,21 @@ class BaseModelMeta(models.base.ModelBase):
             if isinstance(value, (ReferenceProperty, SelfReferenceProperty)):
                 new_cls._reference_attrs.add(name)
         return new_cls
+
+    def __getattribute__(cls, name):
+        try:
+            return super(BaseModelMeta, cls).__getattribute__(name)
+        except AttributeError, orig_err:
+            try:
+                meta = super(BaseModelMeta, cls).__getattribute__('_meta')
+            except AttributeError:
+                # meta not set yet
+                raise orig_err
+            try:
+                return meta.get_field_by_name(name)[0]
+            except FieldDoesNotExist:
+                raise orig_err
+            raise orig_err
 
 
 class Model(models.Model):

@@ -133,8 +133,14 @@ class DatastoreModelTest(unittest.TestCase):
         self.assert_('xstring' in props)
         self.assert_(isinstance(props['xstring'], db.StringProperty))
         self.assert_('gae_parent_id' not in props)
+        # From a App Engine perspective this is wrong. Choices should
+        # be ('foo', 'bar'). For Django this is right.
         self.assertEqual(props['choices'].choices,
                          [('foo', 'foo'), ('bar', 'bar')])
+
+    def test_property_attribute_access(self):
+        # model classes allow accessing properties as attributes
+        self.assert_(isinstance(TestModel.xstring, db.StringProperty))
 
     # Instance methods
 
