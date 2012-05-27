@@ -13,3 +13,4 @@ class RegressionTestModel(db.Model):
     xuser = db.UserProperty(auto_current_user_add=True)
     ref = db.ReferenceProperty(RefTestModel)
     blob = db.BlobProperty()
+    choices = db.StringProperty(choices=['foo', 'bar'])
